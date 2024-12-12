@@ -159,6 +159,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
+/**
+ * Process form structure with LLM to get field mappings
+ * @param {FormElement[]} formStructure - Array of form elements
+ * @param {string[]} piiKeys - Array of available PII keys
+ * @returns {Promise<LLMResponse>} Promise resolving to mapping response
+ */
 async function processWithLLM(formStructure, piiKeys) {
   logDebug("INFO", "Starting LLM processing");
   logDebug("DEBUG", "Form structure received", formStructure);

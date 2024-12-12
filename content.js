@@ -1,4 +1,7 @@
-// Function to extract form structure
+/**
+ * Extracts the structure of form elements from the current page
+ * @returns {FormElement[]} Array of form elements with their properties
+ */
 function extractFormStructure() {
   const formElements = document.querySelectorAll("input, select, textarea");
   const formStructure = [];
@@ -17,7 +20,11 @@ function extractFormStructure() {
   return formStructure;
 }
 
-// Helper function to find associated label
+/**
+ * Finds the associated label text for a form element
+ * @param {HTMLElement} element - The form element to find label for
+ * @returns {string} The label text or empty string if not found
+ */
 function findLabel(element) {
   let label = "";
   if (element.id) {
@@ -27,7 +34,11 @@ function findLabel(element) {
   return label;
 }
 
-// Helper function to get XPath
+/**
+ * Generates an XPath expression to locate an element
+ * @param {HTMLElement} element - The element to generate XPath for
+ * @returns {string} XPath expression
+ */
 function getXPath(element) {
   if (element.id) return `//*[@id="${element.id}"]`;
   const parts = [];
@@ -109,7 +120,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   return true; // Important: indicates we will send a response asynchronously
 });
 
-// Function to fill the form based on mappings
+/**
+ * Fills form elements with PII data based on mappings
+ * @param {Mapping[]} mappings - Array of xpath to PII key mappings
+ * @param {Object.<string, string>} piiData - PII data object with key-value pairs
+ */
 function fillForm(mappings, piiData) {
   mappings.forEach((mapping) => {
     console.log("Filling form element: ", mapping);
