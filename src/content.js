@@ -21,7 +21,7 @@ function extractFormStructure() {
       label: findLabel(inputElement),
       xpath: getXPath(element),
     });
-  });
+  }
 
   return formStructure;
 }
@@ -116,26 +116,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         if (debug) {
           console.log("Sending message to background script");
         }
-        chrome.runtime.sendMessage(
-          {
-            action: "processFormStructure",
-            formStructure: formStructure,
-            piiKeys: piiKeys,
-          },
-          function (response) {
-            if (debug) {
-              console.log("Received response from background:", response);
-            }
-            if (response && response.mappings) {
-              chrome.storage.local.get(["piiData"], function (result) {
-                console.log("Got PII data for filling form");
-                fillForm(response.mappings, result.piiData);
-              });
-            } else {
-              console.error("No mappings in response:", response);
-            }
-          }
-        );
+        const response = await chrome.runtime.sendMessage({
+          action: "processFormStructure",
+          formStructure: formStructure,
+          piiKeys: piiKeys,
+        });
+
+        if (debug) {
+          console.log("Received response from background:", response);
+        }
+
+        if (response && response.mappings) {
+          const result = await chrome.storage.local.get(["piiData"]);
+          console.log("Got PII data for filling form");
+          await fillForm(response.mappings, result.piiData);
+          // Send completion message back to popup
+          sendResponse({ success: true });
+        } else {
+          console.error("No mappings in response:", response);
+          sendResponse({ error: "No mappings received" });
+        }
       } catch (error) {
         console.error("Error in autofill process:", error);
       }
@@ -149,8 +149,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * @param {Mapping[]} mappings - Array of xpath to PII key mappings
  * @param {Object.<string, string>} piiData - PII data object with key-value pairs
  */
-function fillForm(mappings, piiData) {
-  mappings.forEach((mapping) => {
+async function fillForm(mappings, piiData) {
+  for (const mapping of mappings) {
     chrome.storage.local.get(["debugMode"], function (result) {
       if (result.debugMode) {
         console.log("Filling form element: ", mapping);

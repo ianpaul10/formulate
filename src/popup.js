@@ -96,6 +96,13 @@ document.addEventListener("DOMContentLoaded", function () {
                   alert(
                     "Error: Could not connect to the page. Please refresh and try again."
                   );
+                  setButtonLoading("autofill", false);
+                } else if (response && response.error) {
+                  console.error("Error:", response.error);
+                  alert("Error: " + response.error);
+                  setButtonLoading("autofill", false);
+                } else if (response && response.success) {
+                  setButtonLoading("autofill", false);
                 }
               }
             );
@@ -105,8 +112,6 @@ document.addEventListener("DOMContentLoaded", function () {
             alert(
               "Error: Could not inject content script. Please check console for details."
             );
-          })
-          .finally(() => {
             setButtonLoading("autofill", false);
           });
       } catch (error) {
