@@ -1,4 +1,6 @@
-# Formulate
+# YAAFF
+
+Yet another auto form filler
 
 ## Structure
 
