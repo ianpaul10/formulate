@@ -53,8 +53,8 @@ document.addEventListener("DOMContentLoaded", function () {
       chrome.scripting
         .executeScript({
           target: { tabId: tabs[0].id },
-          files: ["browser-polyfill.min.js", "src/types.js", "src/content.js"],
-          world: "MAIN"
+          files: ["browser-polyfill.min.js", "src/types.js", "content.js"],
+          world: "MAIN",
         })
         .then(() => {
           // Then send the message

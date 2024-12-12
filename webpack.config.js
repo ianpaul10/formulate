@@ -41,13 +41,13 @@ module.exports = (env) => ({
               delete manifest.browser_specific_settings;
               // Use service_worker for Chrome
               manifest.background = {
-                service_worker: "src/background.js",
+                service_worker: "background.js",
                 type: "module",
               };
             } else {
               // Use scripts array for Firefox
               manifest.background = {
-                scripts: ["src/background.js"],
+                scripts: ["background.js"],
                 type: "module",
               };
             }

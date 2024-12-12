@@ -8,13 +8,13 @@
     "default_popup": "public/popup.html"
   },
   "background": {
-    "scripts": ["src/background.js"],
+    "scripts": ["background.js"],
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["browser-polyfill.min.js", "src/types.js", "src/content.js"]
+      "js": ["browser-polyfill.min.js", "src/types.js", "content.js"]
     }
   ],
   "browser_specific_settings": {
