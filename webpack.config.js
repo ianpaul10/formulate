@@ -8,6 +8,7 @@ module.exports = {
     background: "./src/background.js",
     content: "./src/content.js",
     popup: "./src/popup.js",
+    crypto: "./src/crypto.js",
   },
   output: {
     path: path.resolve(__dirname, "dist"),

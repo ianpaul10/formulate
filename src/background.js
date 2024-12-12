@@ -181,15 +181,18 @@ async function processWithLLM(formStructure, piiKeys) {
   `;
 
   try {
-    // Get API key from storage
-    const result = await chrome.storage.local.get(["apiKey"]);
-    if (!result.apiKey) {
+    // Get encrypted API key from storage
+    const result = await chrome.storage.local.get(["encryptedApiKey"]);
+    if (!result.encryptedApiKey) {
       logDebug("ERROR", "API key not found");
       throw new Error(
         "API key not found. Please set your OpenAI API key in the extension popup."
       );
     }
-    logDebug("INFO", "API key retrieved successfully");
+    
+    // Decrypt API key
+    const apiKey = await decrypt(result.encryptedApiKey, ENCRYPTION_PASSWORD);
+    logDebug("INFO", "API key retrieved and decrypted successfully");
 
     const requestBody = {
       model: "gpt-4o-2024-08-06",

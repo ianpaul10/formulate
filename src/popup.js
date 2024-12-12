@@ -1,23 +1,28 @@
-document.addEventListener("DOMContentLoaded", function () {
+import { encrypt, decrypt } from './crypto.js';
+
+// Encryption password - in a real app, you'd want to get this from the user
+const ENCRYPTION_PASSWORD = 'your-secure-password-here';
+
+document.addEventListener("DOMContentLoaded", async function () {
   // Load saved PII data, API key, and debug state
-  chrome.storage.local.get(
-    ["piiData", "apiKey", "debugMode"],
-    function (result) {
-      if (result.piiData) {
-        document.getElementById("piiData").value = JSON.stringify(
-          result.piiData,
-          null,
-          2
-        );
-      }
-      if (result.apiKey) {
-        document.getElementById("apiKey").value = result.apiKey;
-      }
-      if (result.debugMode) {
-        document.getElementById("debugMode").checked = result.debugMode;
-      }
+  const result = await chrome.storage.local.get(["encryptedPiiData", "encryptedApiKey", "debugMode"]);
+  
+  try {
+    if (result.encryptedPiiData) {
+      const decryptedPiiData = await decrypt(result.encryptedPiiData, ENCRYPTION_PASSWORD);
+      document.getElementById("piiData").value = decryptedPiiData;
     }
-  );
+    if (result.encryptedApiKey) {
+      const decryptedApiKey = await decrypt(result.encryptedApiKey, ENCRYPTION_PASSWORD);
+      document.getElementById("apiKey").value = decryptedApiKey;
+    }
+    if (result.debugMode) {
+      document.getElementById("debugMode").checked = result.debugMode;
+    }
+  } catch (error) {
+    console.error("Error decrypting data:", error);
+    alert("Error loading encrypted data. Please check console for details.");
+  }
 
   // Helper function to set loading state
   function setButtonLoading(buttonId, isLoading) {
@@ -32,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("savePII")
     .addEventListener("click", async function () {
       try {
-        const piiData = JSON.parse(document.getElementById("piiData").value);
+        const piiData = document.getElementById("piiData").value;
         const apiKey = document.getElementById("apiKey").value;
 
         if (!apiKey) {
@@ -40,27 +45,26 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
+        // Validate JSON format of PII data
+        JSON.parse(piiData); // Will throw if invalid JSON
+
         const debugMode = document.getElementById("debugMode").checked;
         setButtonLoading("savePII", true);
+        
         try {
-          await new Promise((resolve, reject) => {
-            chrome.storage.local.set(
-              {
-                piiData: piiData,
-                apiKey: apiKey,
-                debugMode: debugMode,
-              },
-              () => {
-                if (chrome.runtime.lastError) {
-                  reject(chrome.runtime.lastError);
-                } else {
-                  resolve();
-                }
-              }
-            );
+          // Encrypt sensitive data
+          const encryptedPiiData = await encrypt(piiData, ENCRYPTION_PASSWORD);
+          const encryptedApiKey = await encrypt(apiKey, ENCRYPTION_PASSWORD);
+
+          await chrome.storage.local.set({
+            encryptedPiiData,
+            encryptedApiKey,
+            debugMode,
           });
+          
           alert("Personal information and API key saved successfully!");
         } catch (error) {
+          console.error("Error encrypting/saving data:", error);
           alert("Error saving data: " + error.message);
         } finally {
           setButtonLoading("savePII", false);
