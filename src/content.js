@@ -87,7 +87,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (result.debugMode) {
       console.log("Content script received message:", request);
     }
-  }
+  });
 
   if (request.action === "triggerAutofill") {
     chrome.storage.local.get(["debugMode"], function (result) {
