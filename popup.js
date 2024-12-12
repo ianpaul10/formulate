@@ -1,3 +1,5 @@
+import { debugLog } from './utils.js';
+
 document.addEventListener("DOMContentLoaded", function () {
   // Load saved PII data, API key, and debug state
   chrome.storage.local.get(["piiData", "apiKey", "debugMode"], function (result) {
@@ -52,7 +54,8 @@ document.addEventListener("DOMContentLoaded", function () {
       chrome.scripting
         .executeScript({
           target: { tabId: tabs[0].id },
-          files: ["content.js"],
+          files: ["utils.js", "content.js"],
+          world: "MAIN"
         })
         .then(() => {
           // Then send the message
