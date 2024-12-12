@@ -93,6 +93,8 @@ chrome.runtime.onMessage.addListener(async function (
         }
       }
     );
+
+    console.log("done seding background resp");
   }
 });
 
