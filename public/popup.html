@@ -1,140 +1,145 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Secure Form Autofill</title>
-  <style>
-    :root {
-      --bg-color: #1a1a1a;
-      --text-color: #e0e0e0;
-      --input-bg: #2d2d2d;
-      --input-border: #404040;
-      --button-bg: #4a4a4a;
-      --button-hover: #5a5a5a;
-      --accent-color: #646cff;
-    }
-    
-    body { 
-      width: 300px; 
-      padding: 16px;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      margin: 0;
-    }
+  <head>
+    <title>Secure Form Autofill</title>
+    <style>
+      :root {
+        --bg-color: #1a1a1a;
+        --text-color: #e0e0e0;
+        --input-bg: #2d2d2d;
+        --input-border: #404040;
+        --button-bg: #4a4a4a;
+        --button-hover: #5a5a5a;
+        --accent-color: #646cff;
+      }
 
-    h2 {
-      margin-top: 0;
-      color: var(--accent-color);
-      font-size: 1.2em;
-    }
+      body {
+        width: 300px;
+        padding: 16px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        margin: 0;
+      }
 
-    .form-group { 
-      margin-bottom: 16px;
-    }
+      h2 {
+        margin-top: 0;
+        color: var(--accent-color);
+        font-size: 1.2em;
+      }
 
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 0.9em;
-    }
+      .form-group {
+        margin-bottom: 16px;
+      }
 
-    input[type="password"],
-    textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid var(--input-border);
-      border-radius: 4px;
-      background-color: var(--input-bg);
-      color: var(--text-color);
-      font-family: inherit;
-      box-sizing: border-box;
-    }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+      }
 
-    textarea {
-      height: 120px;
-      resize: vertical;
-    }
+      input[type="password"],
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-family: inherit;
+        box-sizing: border-box;
+      }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      background-color: var(--button-bg);
-      border: none;
-      border-radius: 4px;
-      color: var(--text-color);
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      min-height: 44px;
-    }
+      textarea {
+        height: 120px;
+        resize: vertical;
+      }
 
-    button:hover {
-      background-color: var(--button-hover);
-    }
+      button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        background-color: var(--button-bg);
+        border: none;
+        border-radius: 4px;
+        color: var(--text-color);
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        min-height: 44px;
+      }
 
-    input[type="checkbox"] {
-      margin-right: 8px;
-    }
+      button:hover {
+        background-color: var(--button-hover);
+      }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+      input[type="checkbox"] {
+        margin-right: 8px;
+      }
 
-    .spinner {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--text-color);
-      border-top: 2px solid transparent;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+      .spinner {
+        display: none;
+        width: 15px;
+        height: 15px;
+        border: 2px solid var(--text-color);
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
 
-    .button-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-  </style>
-</head>
-<body>
-  <h2>Personal Information Storage</h2>
-  <div class="form-group">
-    <label>OpenAI API Key:</label>
-    <input type="password" id="apiKey" />
-  </div>
-  <div class="form-group">
-    <label>Personal Info (JSON format):</label>
-    <textarea id="piiData"></textarea>
-  </div>
-  <div class="form-group">
-    <label>
-      <input type="checkbox" id="debugMode" />
-      Enable Debug Logging
-    </label>
-  </div>
-  <button id="savePII">
-    <span class="button-content">
-      Save Personal Info
-      <span class="spinner"></span>
-    </span>
-  </button>
-  <button id="autofill">
-    <span class="button-content">
-      Autofill Current Form
-      <span class="spinner"></span>
-    </span>
-  </button>
-  <script src="../src/popup.js"></script>
-</body>
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Personal Information Storage</h2>
+    <div class="form-group">
+      <label>OpenAI API Key:</label>
+      <input type="password" id="apiKey" />
+    </div>
+    <div class="form-group">
+      <label>Personal Info (JSON format):</label>
+      <textarea id="piiData"></textarea>
+    </div>
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="debugMode" />
+        Enable Debug Logging
+      </label>
+    </div>
+    <button id="savePII">
+      <span class="button-content">
+        Save Personal Info
+        <span class="spinner"></span>
+      </span>
+    </button>
+    <button id="autofill">
+      <span class="button-content">
+        Autofill Current Form
+        <span class="spinner"></span>
+      </span>
+    </button>
+    <script src="../src/popup.js"></script>
+  </body>
 </html>
