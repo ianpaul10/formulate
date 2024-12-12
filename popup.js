@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Load saved PII data and API key
-  chrome.storage.local.get(["piiData", "apiKey"], function (result) {
+  // Load saved PII data, API key, and debug state
+  chrome.storage.local.get(["piiData", "apiKey", "debugMode"], function (result) {
     if (result.piiData) {
       document.getElementById("piiData").value = JSON.stringify(
         result.piiData,
@@ -10,6 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (result.apiKey) {
       document.getElementById("apiKey").value = result.apiKey;
+    }
+    if (result.debugMode) {
+      document.getElementById("debugMode").checked = result.debugMode;
     }
   });
 
@@ -26,10 +29,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
       console.log("GOT API KEY!!!");
 
+      const debugMode = document.getElementById("debugMode").checked;
       chrome.storage.local.set(
         {
           piiData: piiData,
           apiKey: apiKey,
+          debugMode: debugMode,
         },
         function () {
           alert("Personal information and API key saved successfully!");

@@ -1,11 +1,14 @@
 const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
 // Add logging utility
-function logDebug(type, message, data = null) {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${type}:`, message);
-  if (data) {
-    console.log("Data:", data);
+async function logDebug(type, message, data = null) {
+  const result = await chrome.storage.local.get(['debugMode']);
+  if (result.debugMode) {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${type}:`, message);
+    if (data) {
+      console.log("Data:", data);
+    }
   }
 }
 

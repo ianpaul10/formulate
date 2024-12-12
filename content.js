@@ -76,24 +76,39 @@ function getXPath(element) {
 
 // Listen for autofill trigger
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log("Content script received message:", request);
+  chrome.storage.local.get(['debugMode'], function(result) {
+    if (result.debugMode) {
+      console.log("Content script received message:", request);
+    }
+  });
 
   if (request.action === "triggerAutofill") {
-    console.log("Triggering autofill process");
+    chrome.storage.local.get(['debugMode'], function(result) {
+      if (result.debugMode) {
+        console.log("Triggering autofill process");
+      }
+    });
 
     // Using Promise.resolve().then() to handle async operations
     Promise.resolve().then(async () => {
       try {
         const formStructure = extractFormStructure();
-        console.log("Extracted form structure:", formStructure);
+        const debug = (await chrome.storage.local.get(['debugMode'])).debugMode;
+        if (debug) {
+          console.log("Extracted form structure:", formStructure);
+        }
 
         // Get PII data keys (not values)
         const piiData = await chrome.storage.local.get(["piiData"]);
         const piiKeys = Object.keys(piiData.piiData || {});
-        console.log("PII keys extracted:", piiKeys);
+        if (debug) {
+          console.log("PII keys extracted:", piiKeys);
+        }
 
         // Send to background script for LLM processing
-        console.log("Sending message to background script");
+        if (debug) {
+          console.log("Sending message to background script");
+        }
         chrome.runtime.sendMessage(
           {
             action: "processFormStructure",
@@ -101,7 +116,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             piiKeys: piiKeys,
           },
           function (response) {
-            console.log("Received response from background:", response);
+            const debug = (await chrome.storage.local.get(['debugMode'])).debugMode;
+            if (debug) {
+              console.log("Received response from background:", response);
+            }
             if (response && response.mappings) {
               chrome.storage.local.get(["piiData"], function (result) {
                 console.log("Got PII data for filling form");
@@ -127,7 +145,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  */
 function fillForm(mappings, piiData) {
   mappings.forEach((mapping) => {
-    console.log("Filling form element: ", mapping);
+    chrome.storage.local.get(['debugMode'], function(result) {
+      if (result.debugMode) {
+        console.log("Filling form element: ", mapping);
+      }
+    });
 
     const element = document.evaluate(
       mapping.xpath,
@@ -136,17 +158,29 @@ function fillForm(mappings, piiData) {
       XPathResult.FIRST_ORDERED_NODE_TYPE,
       null
     ).singleNodeValue;
-    console.log("Found element:", element);
+    chrome.storage.local.get(['debugMode'], function(result) {
+      if (result.debugMode) {
+        console.log("Found element:", element);
+      }
+    });
 
     if (element && piiData[mapping.piiKey]) {
-      console.log("Found PII data for element:", piiData[mapping.piiKey]);
+      chrome.storage.local.get(['debugMode'], function(result) {
+        if (result.debugMode) {
+          console.log("Found PII data for element:", piiData[mapping.piiKey]);
+        }
+      });
       // @ts-ignore
       element.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
       element.dispatchEvent(new Event("input", { bubbles: true }));
     } else {
-      console.log("No PII data found for element:", mapping.piiKey);
+      chrome.storage.local.get(['debugMode'], function(result) {
+        if (result.debugMode) {
+          console.log("No PII data found for element:", mapping.piiKey);
+        }
+      });
     }
   });
 }
