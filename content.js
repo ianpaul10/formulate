@@ -76,6 +76,9 @@ chrome.runtime.onMessage.addListener(async function (
     const piiData = await chrome.storage.local.get(["piiData"]);
     const piiKeys = Object.keys(piiData.piiData || {});
 
+    console.log("pii keys:");
+    console.log(piiKeys);
+
     // Send to background script for LLM processing
     chrome.runtime.sendMessage(
       {
