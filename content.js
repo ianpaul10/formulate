@@ -7,12 +7,14 @@ function extractFormStructure() {
   const formStructure = [];
 
   formElements.forEach((element) => {
+    // Cast element to HTMLInputElement or similar
+    const inputElement = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (element);
     formStructure.push({
-      type: element.type || element.tagName.toLowerCase(),
-      id: element.id,
-      name: element.name,
-      placeholder: element.placeholder,
-      label: findLabel(element),
+      type: inputElement.type || inputElement.tagName.toLowerCase(),
+      id: inputElement.id,
+      name: inputElement.name,
+      placeholder: inputElement.placeholder || '',
+      label: findLabel(inputElement),
       xpath: getXPath(element),
     });
   });
@@ -23,6 +25,11 @@ function extractFormStructure() {
 /**
  * Finds the associated label text for a form element
  * @param {HTMLElement} element - The form element to find label for
+ * @returns {string} The label text or empty string if not found
+ */
+/**
+ * Finds the associated label text for a form element
+ * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} element - The form element to find label for
  * @returns {string} The label text or empty string if not found
  */
 function findLabel(element) {
@@ -37,6 +44,11 @@ function findLabel(element) {
 /**
  * Generates an XPath expression to locate an element
  * @param {HTMLElement} element - The element to generate XPath for
+ * @returns {string} XPath expression
+ */
+/**
+ * Generates an XPath expression to locate an element
+ * @param {Element} element - The element to generate XPath for
  * @returns {string} XPath expression
  */
 function getXPath(element) {
@@ -169,8 +181,9 @@ function fillForm(mappings, piiData) {
           console.log("Found PII data for element:", piiData[mapping.piiKey]);
         }
       });
-      // @ts-ignore
-      element.value = piiData[mapping.piiKey];
+      // Cast element to input type
+      const inputElement = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (element);
+      inputElement.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
       element.dispatchEvent(new Event("input", { bubbles: true }));
