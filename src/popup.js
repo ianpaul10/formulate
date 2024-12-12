@@ -1,20 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Load saved PII data, API key, and debug state
-  chrome.storage.local.get(["piiData", "apiKey", "debugMode"], function (result) {
-    if (result.piiData) {
-      document.getElementById("piiData").value = JSON.stringify(
-        result.piiData,
-        null,
-        2
-      );
+  chrome.storage.local.get(
+    ["piiData", "apiKey", "debugMode"],
+    function (result) {
+      if (result.piiData) {
+        document.getElementById("piiData").value = JSON.stringify(
+          result.piiData,
+          null,
+          2
+        );
+      }
+      if (result.apiKey) {
+        document.getElementById("apiKey").value = result.apiKey;
+      }
+      if (result.debugMode) {
+        document.getElementById("debugMode").checked = result.debugMode;
+      }
     }
-    if (result.apiKey) {
-      document.getElementById("apiKey").value = result.apiKey;
-    }
-    if (result.debugMode) {
-      document.getElementById("debugMode").checked = result.debugMode;
-    }
-  });
+  );
 
   // Save PII data and API key
   document.getElementById("savePII").addEventListener("click", function () {
@@ -26,8 +29,6 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("Please enter your OpenAI API key");
         return;
       }
-
-      console.log("GOT API KEY!!!");
 
       const debugMode = document.getElementById("debugMode").checked;
       chrome.storage.local.set(

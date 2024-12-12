@@ -1,6 +1,11 @@
 "
     Given a form structure and available PII keys, determine the best mapping.
-    Form structure: [{"type":"hidden","id":"","name":"goto","placeholder":"","label":"","xpath":"/html/body/form[1]/input[1]"},{"type":"text","id":"","name":"acct","placeholder":"","label":"","xpath":"/html/body/form[1]/table/tbody/tr[1]/td[2]/input"},{"type":"password","id":"","name":"pw","placeholder":"","label":"","xpath":"/html/body/form[1]/table/tbody/tr[2]/td[2]/input"},{"type":"submit","id":"","name":"","placeholder":"","label":"","xpath":"/html/body/form[1]/input[2]"},{"type":"hidden","id":"","name":"goto","placeholder":"","label":"","xpath":"/html/body/form[2]/input[1]"},{"type":"hidden","id":"","name":"creating","placeholder":"","label":"","xpath":"/html/body/form[2]/input[2]"},{"type":"text","id":"","name":"acct","placeholder":"","label":"","xpath":"/html/body/form[2]/table/tbody/tr[1]/td[2]/input"},{"type":"password","id":"","name":"pw","placeholder":"","label":"","xpath":"/html/body/form[2]/table/tbody/tr[2]/td[2]/input"},{"type":"submit","id":"","name":"","placeholder":"","label":"","xpath":"/html/body/form[2]/input[3]"}]
+    Form structure: [
+
+    {"type":"hidden","id":"","name":"goto","placeholder":"","label":"","xpath":"/html/body/form[1]/input[1]"},
+    {"type":"text","id":"","name":"acct","placeholder":"","label":"","xpath":"/html/body/form[1]/table/tbody/tr[1]/td[2]/input"},
+    {"type":"password","id":"","name":"pw","placeholder":"","label":"","xpath":"/html/body/form[1]/table/tbody/tr[2]/td[2]/input"},
+    {"type":"submit","id":"","name":"","placeholder":"","label":"","xpath":"/html/body/form[1]/input[2]"},{"type":"hidden","id":"","name":"goto","placeholder":"","label":"","xpath":"/html/body/form[2]/input[1]"},{"type":"hidden","id":"","name":"creating","placeholder":"","label":"","xpath":"/html/body/form[2]/input[2]"},{"type":"text","id":"","name":"acct","placeholder":"","label":"","xpath":"/html/body/form[2]/table/tbody/tr[1]/td[2]/input"},{"type":"password","id":"","name":"pw","placeholder":"","label":"","xpath":"/html/body/form[2]/table/tbody/tr[2]/td[2]/input"},{"type":"submit","id":"","name":"","placeholder":"","label":"","xpath":"/html/body/form[2]/input[3]"}]
     Available PII keys: ["country_of_origin","date_of_birth","email","first_name","home_address","last_name","middle_name","passport_expiry_date","passport_number","password","work_email"]
     Return a JSON array of mappings with xpath and piiKey for each field.
     DO NOT HALUCINATE.
