@@ -1,16 +1,6 @@
-const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
+import { debugLog, CONSTANTS } from "./utils.js";
 
-// Add logging utility
-async function logDebug(type, message, data = null) {
-  const result = await chrome.storage.local.get(['debugMode']);
-  if (result.debugMode) {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${type}:`, message);
-    if (data) {
-      console.log("Data:", data);
-    }
-  }
-}
+const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
 const inputFormDataStructure = {
   type: "json_schema",
@@ -131,10 +121,10 @@ const outputFormDataStructure = {
 };
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  logDebug("INFO", "Background script received message", request);
+  debugLog("INFO", "Background script received message", request);
 
   if (request.action === "processFormStructure") {
-    logDebug("INFO", "Processing form structure request", {
+    debugLog("INFO", "Processing form structure request", {
       tabId: sender.tab?.id,
       url: sender.tab?.url,
       formStructure: request.formStructure,
@@ -142,23 +132,23 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
 
     if (!request.formStructure || !request.piiKeys) {
-      logDebug("ERROR", "Missing required data in request");
+      debugLog("ERROR", "Missing required data in request");
       sendResponse({ error: "Missing required data" });
       return true;
     }
 
     processWithLLM(request.formStructure, request.piiKeys)
       .then((mappings) => {
-        logDebug("INFO", "Successfully processed form structure", mappings);
+        debugLog("INFO", "Successfully processed form structure", mappings);
         sendResponse(mappings);
       })
       .catch((error) => {
-        logDebug("ERROR", "Failed to process form structure", error);
+        debugLog("ERROR", "Failed to process form structure", error);
         sendResponse({ error: error.message });
       });
     return true; // Will respond asynchronously
   } else {
-    logDebug("WARNING", "Unknown action received", request.action);
+    debugLog("WARNING", "Unknown action received", request.action);
   }
 });
 
@@ -169,9 +159,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * @returns {Promise<LLMResponse>} Promise resolving to mapping response
  */
 async function processWithLLM(formStructure, piiKeys) {
-  logDebug("INFO", "Starting LLM processing");
-  logDebug("DEBUG", "Form structure received", formStructure);
-  logDebug("DEBUG", "PII keys received", piiKeys);
+  debugLog("INFO", "Starting LLM processing");
+  debugLog("DEBUG", "Form structure received", formStructure);
+  debugLog("DEBUG", "PII keys received", piiKeys);
 
   const prompt = `
     Given an input form data object (specified in inputFormDataStructure) and available personal identification information (PII) keys (specified in piiKeys), determine the best mapping.
@@ -184,12 +174,12 @@ async function processWithLLM(formStructure, piiKeys) {
     // Get API key from storage
     const result = await chrome.storage.local.get(["apiKey"]);
     if (!result.apiKey) {
-      logDebug("ERROR", "API key not found");
+      debugLog("ERROR", "API key not found");
       throw new Error(
         "API key not found. Please set your OpenAI API key in the extension popup."
       );
     }
-    logDebug("INFO", "API key retrieved successfully");
+    debugLog("INFO", "API key retrieved successfully");
 
     const requestBody = {
       model: "gpt-4o-2024-08-06",
@@ -214,7 +204,7 @@ async function processWithLLM(formStructure, piiKeys) {
       response_format: outputFormDataStructure,
     };
 
-    logDebug("DEBUG", "Sending request to OpenAI API", {
+    debugLog("DEBUG", "Sending request to OpenAI API", {
       endpoint: LLM_API_ENDPOINT,
       body: requestBody,
     });
@@ -229,10 +219,10 @@ async function processWithLLM(formStructure, piiKeys) {
     });
 
     const data = await response.json();
-    logDebug("DEBUG", "Received response from OpenAI API", data);
+    debugLog("DEBUG", "Received response from OpenAI API", data);
 
     if (!response.ok) {
-      logDebug("ERROR", "API request failed", {
+      debugLog("ERROR", "API request failed", {
         status: response.status,
         statusText: response.statusText,
         data: data,
@@ -244,10 +234,10 @@ async function processWithLLM(formStructure, piiKeys) {
 
     // Parse and validate LLM response
     const mappings = JSON.parse(data.choices[0].message.content);
-    logDebug("INFO", "Successfully parsed LLM response", mappings);
+    debugLog("INFO", "Successfully parsed LLM response", mappings);
     return mappings;
   } catch (error) {
-    logDebug("ERROR", "LLM processing error", {
+    debugLog("ERROR", "LLM processing error", {
       message: error.message,
       stack: error.stack,
     });
