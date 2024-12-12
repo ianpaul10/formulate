@@ -10,11 +10,21 @@ function logDebug(type, message, data = null) {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  logDebug("INFO", "Background script received message", request);
+  
   if (request.action === "processFormStructure") {
-    logDebug("INFO", "Received processFormStructure request", {
+    logDebug("INFO", "Processing form structure request", {
       tabId: sender.tab?.id,
       url: sender.tab?.url,
+      formStructure: request.formStructure,
+      piiKeys: request.piiKeys
     });
+
+    if (!request.formStructure || !request.piiKeys) {
+      logDebug("ERROR", "Missing required data in request");
+      sendResponse({ error: "Missing required data" });
+      return true;
+    }
 
     processWithLLM(request.formStructure, request.piiKeys)
       .then((mappings) => {
@@ -26,6 +36,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse({ error: error.message });
       });
     return true; // Will respond asynchronously
+  } else {
+    logDebug("WARNING", "Unknown action received", request.action);
   }
 });
 

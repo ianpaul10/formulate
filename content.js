@@ -64,38 +64,49 @@ function getXPath(element) {
 }
 
 // Listen for autofill trigger
-chrome.runtime.onMessage.addListener(async function (
-  request,
-  sender,
-  sendResponse
-) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  console.log("Content script received message:", request);
+  
   if (request.action === "triggerAutofill") {
-    const formStructure = extractFormStructure();
+    console.log("Triggering autofill process");
+    
+    // Using Promise.resolve().then() to handle async operations
+    Promise.resolve().then(async () => {
+      try {
+        const formStructure = extractFormStructure();
+        console.log("Extracted form structure:", formStructure);
 
-    // Get PII data keys (not values)
-    const piiData = await chrome.storage.local.get(["piiData"]);
-    const piiKeys = Object.keys(piiData.piiData || {});
+        // Get PII data keys (not values)
+        const piiData = await chrome.storage.local.get(["piiData"]);
+        const piiKeys = Object.keys(piiData.piiData || {});
+        console.log("PII keys extracted:", piiKeys);
 
-    console.log("pii keys:");
-    console.log(piiKeys);
-
-    // Send to background script for LLM processing
-    chrome.runtime.sendMessage(
-      {
-        action: "processFormStructure",
-        formStructure: formStructure,
-        piiKeys: piiKeys,
-      },
-      async function (response) {
-        if (response.mappings) {
-          const piiData = (await chrome.storage.local.get(["piiData"])).piiData;
-          fillForm(response.mappings, piiData);
-        }
+        // Send to background script for LLM processing
+        console.log("Sending message to background script");
+        chrome.runtime.sendMessage(
+          {
+            action: "processFormStructure",
+            formStructure: formStructure,
+            piiKeys: piiKeys,
+          },
+          function (response) {
+            console.log("Received response from background:", response);
+            if (response && response.mappings) {
+              chrome.storage.local.get(["piiData"], function(result) {
+                console.log("Got PII data for filling form");
+                fillForm(response.mappings, result.piiData);
+              });
+            } else {
+              console.error("No mappings in response:", response);
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Error in autofill process:", error);
       }
-    );
-
-    console.log("done seding background resp");
+    });
   }
+  return true; // Important: indicates we will send a response asynchronously
 });
 
 // Function to fill the form based on mappings
