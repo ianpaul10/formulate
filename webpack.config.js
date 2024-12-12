@@ -55,7 +55,7 @@ module.exports = (env) => ({
           },
         },
         { from: "public", to: "public" },
-        { from: "src/types.js", to: "types.js" },
+        { from: "src/types.js", to: "src/types.js" },
         {
           from: "node_modules/webextension-polyfill/dist/browser-polyfill.min.js",
           to: "browser-polyfill.min.js",

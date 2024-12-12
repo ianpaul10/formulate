@@ -49,11 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Trigger autofill
   document.getElementById("autofill").addEventListener("click", function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      // First ensure the content script is injected
+      // First ensure all required scripts are injected in correct order
       chrome.scripting
         .executeScript({
           target: { tabId: tabs[0].id },
-          files: ["src/content.js"],
+          files: ["browser-polyfill.min.js", "src/types.js", "src/content.js"],
+          world: "MAIN"
         })
         .then(() => {
           // Then send the message
