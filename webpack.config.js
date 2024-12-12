@@ -1,7 +1,7 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 
-module.exports = {
+module.exports = (env) => ({
   mode: 'development',
   devtool: 'source-map',
   entry: {
@@ -10,7 +10,7 @@ module.exports = {
     popup: './src/popup.js'
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, `dist/${env.browser}`),
     filename: '[name].js',
     clean: true
   },
@@ -31,9 +31,24 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'manifest.json', to: 'manifest.json' },
+        { 
+          from: 'manifest.json',
+          to: 'manifest.json',
+          transform(content) {
+            const manifest = JSON.parse(content);
+            // Remove Firefox-specific settings for Chrome build
+            if (env.browser === 'chrome') {
+              delete manifest.browser_specific_settings;
+            }
+            return JSON.stringify(manifest, null, 2);
+          }
+        },
         { from: 'public', to: 'public' },
-        { from: 'src/types.js', to: 'types.js' }
+        { from: 'src/types.js', to: 'types.js' },
+        { 
+          from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js',
+          to: 'browser-polyfill.min.js'
+        }
       ]
     })
   ]
