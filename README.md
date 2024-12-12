@@ -2,6 +2,8 @@
 
 Yet another auto form filler
 
+![YAAFF](public/icons/yaaff128.png)
+
 ## Structure
 
 The basic structure and logical flow of this extension is as follows:
