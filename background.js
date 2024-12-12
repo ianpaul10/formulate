@@ -1,12 +1,12 @@
-// Replace with your actual API endpoint and key
-const LLM_API_ENDPOINT = 'YOUR_LLM_API_ENDPOINT';
-const API_KEY = 'YOUR_API_KEY';
+// const LLM_API_ENDPOINT = "YOUR_LLM_API_ENDPOINT";
+const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
+const API_KEY = "YOUR_API_KEY";
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "processFormStructure") {
     processWithLLM(request.formStructure, request.piiKeys)
-      .then(mappings => sendResponse({mappings: mappings}))
-      .catch(error => sendResponse({error: error.message}));
+      .then((mappings) => sendResponse({ mappings: mappings }))
+      .catch((error) => sendResponse({ error: error.message }));
     return true; // Will respond asynchronously
   }
 });
@@ -17,19 +17,30 @@ async function processWithLLM(formStructure, piiKeys) {
     Form structure: ${JSON.stringify(formStructure)}
     Available PII keys: ${JSON.stringify(piiKeys)}
     Return a JSON array of mappings with xpath and piiKey for each field.
+    DO NOT HALUCINATE.
   `;
 
   try {
     const response = await fetch(LLM_API_ENDPOINT, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({
-        prompt: prompt,
-        max_tokens: 500
-      })
+        model: "gpt-4o",
+        // prompt: prompt,
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      }),
     });
 
     const data = await response.json();
@@ -37,7 +48,7 @@ async function processWithLLM(formStructure, piiKeys) {
     // This is a simplified example - you'll need to adapt based on your LLM's response format
     return JSON.parse(data.choices[0].text);
   } catch (error) {
-    console.error('LLM processing error:', error);
+    console.error("LLM processing error:", error);
     throw error;
   }
 }
