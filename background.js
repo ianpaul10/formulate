@@ -1,16 +1,6 @@
 const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
-// Add logging utility
-async function logDebug(type, message, data = null) {
-  const result = await chrome.storage.local.get(["debugMode"]);
-  if (result.debugMode) {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${type}:`, message);
-    if (data) {
-      console.log("Data:", data);
-    }
-  }
-}
+import { debugLog } from './utils.js';
 
 const inputFormDataStructure = {
   type: "json_schema",
@@ -131,10 +121,10 @@ const outputFormDataStructure = {
 };
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  logDebug("INFO", "Background script received message", request);
+  debugLog("INFO", "Background script received message", request);
 
   if (request.action === "processFormStructure") {
-    logDebug("INFO", "Processing form structure request", {
+    debugLog("INFO", "Processing form structure request", {
       tabId: sender.tab?.id,
       url: sender.tab?.url,
       formStructure: request.formStructure,
@@ -142,23 +132,23 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
 
     if (!request.formStructure || !request.piiKeys) {
-      logDebug("ERROR", "Missing required data in request");
+      debugLog("ERROR", "Missing required data in request");
       sendResponse({ error: "Missing required data" });
       return true;
     }
 
     processWithLLM(request.formStructure, request.piiKeys)
       .then((mappings) => {
-        logDebug("INFO", "Successfully processed form structure", mappings);
+        debugLog("INFO", "Successfully processed form structure", mappings);
         sendResponse(mappings);
       })
       .catch((error) => {
-        logDebug("ERROR", "Failed to process form structure", error);
+        debugLog("ERROR", "Failed to process form structure", error);
         sendResponse({ error: error.message });
       });
     return true; // Will respond asynchronously
   } else {
-    logDebug("WARNING", "Unknown action received", request.action);
+    debugLog("WARNING", "Unknown action received", request.action);
   }
 });
 

@@ -1,3 +1,5 @@
+import { debugLog } from './utils.js';
+
 /**
  * Extracts the structure of form elements from the current page
  * @returns {FormElement[]} Array of form elements with their properties
@@ -76,39 +78,24 @@ function getXPath(element) {
 
 // Listen for autofill trigger
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  chrome.storage.local.get(['debugMode'], function(result) {
-    if (result.debugMode) {
-      console.log("Content script received message:", request);
-    }
-  });
+  debugLog("INFO", "Content script received message:", request);
 
   if (request.action === "triggerAutofill") {
-    chrome.storage.local.get(['debugMode'], function(result) {
-      if (result.debugMode) {
-        console.log("Triggering autofill process");
-      }
-    });
+    debugLog("INFO", "Triggering autofill process");
 
     // Using Promise.resolve().then() to handle async operations
     Promise.resolve().then(async () => {
       try {
         const formStructure = extractFormStructure();
-        const debug = (await chrome.storage.local.get(['debugMode'])).debugMode;
-        if (debug) {
-          console.log("Extracted form structure:", formStructure);
-        }
+        await debugLog("INFO", "Extracted form structure:", formStructure);
 
         // Get PII data keys (not values)
         const piiData = await chrome.storage.local.get(["piiData"]);
         const piiKeys = Object.keys(piiData.piiData || {});
-        if (debug) {
-          console.log("PII keys extracted:", piiKeys);
-        }
+        await debugLog("INFO", "PII keys extracted:", piiKeys);
 
         // Send to background script for LLM processing
-        if (debug) {
-          console.log("Sending message to background script");
-        }
+        await debugLog("INFO", "Sending message to background script");
         chrome.runtime.sendMessage(
           {
             action: "processFormStructure",
@@ -116,10 +103,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             piiKeys: piiKeys,
           },
           function (response) {
-            const debug = (await chrome.storage.local.get(['debugMode'])).debugMode;
-            if (debug) {
-              console.log("Received response from background:", response);
-            }
+            await debugLog("INFO", "Received response from background:", response);
             if (response && response.mappings) {
               chrome.storage.local.get(["piiData"], function (result) {
                 console.log("Got PII data for filling form");
@@ -145,11 +129,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  */
 function fillForm(mappings, piiData) {
   mappings.forEach((mapping) => {
-    chrome.storage.local.get(['debugMode'], function(result) {
-      if (result.debugMode) {
-        console.log("Filling form element: ", mapping);
-      }
-    });
+    await debugLog("INFO", "Filling form element: ", mapping);
 
     const element = document.evaluate(
       mapping.xpath,
@@ -158,29 +138,17 @@ function fillForm(mappings, piiData) {
       XPathResult.FIRST_ORDERED_NODE_TYPE,
       null
     ).singleNodeValue;
-    chrome.storage.local.get(['debugMode'], function(result) {
-      if (result.debugMode) {
-        console.log("Found element:", element);
-      }
-    });
+    await debugLog("INFO", "Found element:", element);
 
     if (element && piiData[mapping.piiKey]) {
-      chrome.storage.local.get(['debugMode'], function(result) {
-        if (result.debugMode) {
-          console.log("Found PII data for element:", piiData[mapping.piiKey]);
-        }
-      });
+      await debugLog("INFO", "Found PII data for element:", piiData[mapping.piiKey]);
       // @ts-ignore
       element.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
       element.dispatchEvent(new Event("input", { bubbles: true }));
     } else {
-      chrome.storage.local.get(['debugMode'], function(result) {
-        if (result.debugMode) {
-          console.log("No PII data found for element:", mapping.piiKey);
-        }
-      });
+      await debugLog("INFO", "No PII data found for element:", mapping.piiKey);
     }
   });
 }

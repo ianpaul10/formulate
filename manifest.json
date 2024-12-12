@@ -13,7 +13,8 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["types.js", "content.js"]
+      "js": ["types.js", "utils.js", "content.js"],
+      "type": "module"
     }
   ]
 }
