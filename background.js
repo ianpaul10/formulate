@@ -9,15 +9,133 @@ function logDebug(type, message, data = null) {
   }
 }
 
+const inputFormDataStructure = {
+  type: "json_schema",
+  json_schema: {
+    name: "form_data_with_pii",
+    schema: {
+      type: "object",
+      properties: {
+        form_data: {
+          type: "array",
+          description:
+            "A list of form data objects, each representing a form item.",
+          items: {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                description:
+                  "The type of the form item, e.g., text, email, password.",
+              },
+              id: {
+                type: "string",
+                description: "The unique identifier of the form item.",
+              },
+              name: {
+                type: "string",
+                description: "The name attribute of the form item.",
+              },
+              placeholder: {
+                type: "string",
+                description: "Placeholder text for the form item.",
+              },
+              label: {
+                type: "string",
+                description: "Label for the form item, displayed to the user.",
+              },
+              xpath: {
+                type: "string",
+                description:
+                  "The XPath expression to locate the form item in an HTML document.",
+              },
+            },
+            required: ["type", "id", "name", "placeholder", "label", "xpath"],
+            additionalProperties: false,
+          },
+        },
+        pii_keys: {
+          type: "array",
+          description: "A list of keys representing PII items.",
+          items: {
+            type: "string",
+            description:
+              "A PII key such as date_of_birth, email, username, etc.",
+          },
+        },
+        mappings: {
+          type: "array",
+          description:
+            "A list of mappings between XPath of form items and PII items.",
+          items: {
+            type: "object",
+            properties: {
+              xpath: {
+                type: "string",
+                description: "The XPath of the form item.",
+              },
+              pii_key: {
+                type: "string",
+                description: "The corresponding PII key, if applicable.",
+              },
+            },
+            required: ["xpath", "pii_key"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["form_data", "pii_keys", "mappings"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+};
+
+const outputFormDataStructure = {
+  type: "json_schema",
+  json_schema: {
+    name: "form_data_with_pii",
+    schema: {
+      type: "object",
+      properties: {
+        mappings: {
+          type: "array",
+          description:
+            "A list of mappings between XPath of form items and PII items.",
+          items: {
+            type: "object",
+            properties: {
+              xpath: {
+                type: "string",
+                description: "The XPath of the form item.",
+              },
+              pii_key: {
+                type: "string",
+                description:
+                  "The corresponding PII key, if applicable. If you aren't able to correctly identify an appropriate PII key, do not include the form data xpath",
+              },
+            },
+            required: ["xpath"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["mappings"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+};
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   logDebug("INFO", "Background script received message", request);
-  
+
   if (request.action === "processFormStructure") {
     logDebug("INFO", "Processing form structure request", {
       tabId: sender.tab?.id,
       url: sender.tab?.url,
       formStructure: request.formStructure,
-      piiKeys: request.piiKeys
+      piiKeys: request.piiKeys,
     });
 
     if (!request.formStructure || !request.piiKeys) {

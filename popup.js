@@ -43,7 +43,33 @@ document.addEventListener("DOMContentLoaded", function () {
   // Trigger autofill
   document.getElementById("autofill").addEventListener("click", function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, { action: "triggerAutofill" });
+      // First ensure the content script is injected
+      chrome.scripting
+        .executeScript({
+          target: { tabId: tabs[0].id },
+          files: ["content.js"],
+        })
+        .then(() => {
+          // Then send the message
+          chrome.tabs.sendMessage(
+            tabs[0].id,
+            { action: "triggerAutofill" },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.error("Error:", chrome.runtime.lastError);
+                alert(
+                  "Error: Could not connect to the page. Please refresh and try again."
+                );
+              }
+            }
+          );
+        })
+        .catch((err) => {
+          console.error("Script injection failed:", err);
+          alert(
+            "Error: Could not inject content script. Please check console for details."
+          );
+        });
     });
   });
 });

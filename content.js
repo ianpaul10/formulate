@@ -66,10 +66,10 @@ function getXPath(element) {
 // Listen for autofill trigger
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   console.log("Content script received message:", request);
-  
+
   if (request.action === "triggerAutofill") {
     console.log("Triggering autofill process");
-    
+
     // Using Promise.resolve().then() to handle async operations
     Promise.resolve().then(async () => {
       try {
@@ -92,7 +92,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           function (response) {
             console.log("Received response from background:", response);
             if (response && response.mappings) {
-              chrome.storage.local.get(["piiData"], function(result) {
+              chrome.storage.local.get(["piiData"], function (result) {
                 console.log("Got PII data for filling form");
                 fillForm(response.mappings, result.piiData);
               });
