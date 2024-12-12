@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
       chrome.scripting
         .executeScript({
           target: { tabId: tabs[0].id },
-          files: ["content.js"],
+          files: ["src/content.js"],
         })
         .then(() => {
           // Then send the message
