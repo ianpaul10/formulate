@@ -8,12 +8,16 @@ function extractFormStructure() {
 
   formElements.forEach((element) => {
     // Cast element to HTMLInputElement or similar
-    const inputElement = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (element);
+    const inputElement =
+      /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
+        element
+      );
     formStructure.push({
       type: inputElement.type || inputElement.tagName.toLowerCase(),
       id: inputElement.id,
       name: inputElement.name,
-      placeholder: inputElement.placeholder || '',
+      // @ts-ignore
+      placeholder: inputElement.placeholder || "",
       label: findLabel(inputElement),
       xpath: getXPath(element),
     });
@@ -22,11 +26,6 @@ function extractFormStructure() {
   return formStructure;
 }
 
-/**
- * Finds the associated label text for a form element
- * @param {HTMLElement} element - The form element to find label for
- * @returns {string} The label text or empty string if not found
- */
 /**
  * Finds the associated label text for a form element
  * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} element - The form element to find label for
@@ -41,11 +40,6 @@ function findLabel(element) {
   return label;
 }
 
-/**
- * Generates an XPath expression to locate an element
- * @param {HTMLElement} element - The element to generate XPath for
- * @returns {string} XPath expression
- */
 /**
  * Generates an XPath expression to locate an element
  * @param {Element} element - The element to generate XPath for
@@ -81,6 +75,7 @@ function getXPath(element) {
         ? `[${nbOfPreviousSiblings + 1}]`
         : "";
     parts.push(prefix + element.localName + nth);
+    // @ts-ignore
     element = element.parentNode;
   }
   return "/" + parts.reverse().join("/");
@@ -182,7 +177,10 @@ function fillForm(mappings, piiData) {
         }
       });
       // Cast element to input type
-      const inputElement = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (element);
+      const inputElement =
+        /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
+          element
+        );
       inputElement.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
