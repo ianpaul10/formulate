@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Secure Form Autofill",
-  "version": "1.0",
+  "name": "YAAFF - Yet Another Auto Form Filler",
+  "version": "0.1.0",
   "description": "Securely autofill forms using locally stored PII and LLM assistance",
   "permissions": ["storage", "activeTab", "scripting", "tabs"],
   "action": {
