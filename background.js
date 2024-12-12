@@ -109,13 +109,13 @@ const outputFormDataStructure = {
                 type: "string",
                 description: "The XPath of the form item.",
               },
-              pii_key: {
+              piiKey: {
                 type: "string",
                 description:
-                  "The corresponding PII key, if applicable. If you aren't able to correctly identify an appropriate PII key, do not include the form data xpath",
+                  "The corresponding PII key, if applicable. If you aren't able to correctly identify an appropriate PII key, you can leave this field as an empty string.",
               },
             },
-            required: ["xpath"],
+            required: ["xpath", "piiKey"],
             additionalProperties: false,
           },
         },
@@ -147,7 +147,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     processWithLLM(request.formStructure, request.piiKeys)
       .then((mappings) => {
         logDebug("INFO", "Successfully processed form structure", mappings);
-        sendResponse({ mappings: mappings });
+        sendResponse(mappings);
       })
       .catch((error) => {
         logDebug("ERROR", "Failed to process form structure", error);
@@ -165,10 +165,9 @@ async function processWithLLM(formStructure, piiKeys) {
   logDebug("DEBUG", "PII keys received", piiKeys);
 
   const prompt = `
-    Given a form structure and available PII keys, determine the best mapping.
-    Form structure: ${JSON.stringify(formStructure)}
-    Available PII keys: ${JSON.stringify(piiKeys)}
-    Return a JSON array of mappings with xpath and piiKey for each field.
+    Given an input form data object (specified in inputFormDataStructure) and available personal identification information (PII) keys (specified in piiKeys), determine the best mapping.
+    Return a JSON array of mappings with xpath and piiKey for each field. If you are unsure if any of the piiKeys map to any of the xpath's, exclude it from the output.
+    The given input data is in the next message.
     DO NOT HALUCINATE.
   `;
 
@@ -184,7 +183,7 @@ async function processWithLLM(formStructure, piiKeys) {
     logDebug("INFO", "API key retrieved successfully");
 
     const requestBody = {
-      model: "gpt-4",
+      model: "gpt-4o-2024-08-06",
       messages: [
         {
           role: "system",
@@ -194,7 +193,16 @@ async function processWithLLM(formStructure, piiKeys) {
           role: "user",
           content: prompt,
         },
+        {
+          role: "user",
+          content: JSON.stringify({
+            inputFormDataStructure: inputFormDataStructure,
+            formStructure: formStructure,
+            piiKeys: piiKeys,
+          }),
+        },
       ],
+      response_format: outputFormDataStructure,
     };
 
     logDebug("DEBUG", "Sending request to OpenAI API", {
@@ -226,7 +234,7 @@ async function processWithLLM(formStructure, piiKeys) {
     }
 
     // Parse and validate LLM response
-    const mappings = JSON.parse(data.choices[0].text);
+    const mappings = JSON.parse(data.choices[0].message.content);
     logDebug("INFO", "Successfully parsed LLM response", mappings);
     return mappings;
   } catch (error) {

@@ -112,6 +112,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 // Function to fill the form based on mappings
 function fillForm(mappings, piiData) {
   mappings.forEach((mapping) => {
+    console.log("Filling form element: ", mapping);
+
     const element = document.evaluate(
       mapping.xpath,
       document,
@@ -119,12 +121,16 @@ function fillForm(mappings, piiData) {
       XPathResult.FIRST_ORDERED_NODE_TYPE,
       null
     ).singleNodeValue;
+    console.log("Found element:", element);
 
     if (element && piiData[mapping.piiKey]) {
+      console.log("Found PII data for element:", piiData[mapping.piiKey]);
       element.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
       element.dispatchEvent(new Event("input", { bubbles: true }));
+    } else {
+      console.log("No PII data found for element:", mapping.piiKey);
     }
   });
 }
