@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Secure Form Autofill",
+  "version": "1.0",
+  "description": "Securely autofill forms using locally stored PII and LLM assistance",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["content.js"]
+  }]
+}

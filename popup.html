@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secure Form Autofill</title>
+  <style>
+    body { width: 300px; padding: 10px; }
+    .form-group { margin-bottom: 10px; }
+    textarea { width: 100%; height: 100px; }
+    button { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Personal Information Storage</h2>
+  <div class="form-group">
+    <label>Personal Info (JSON format):</label>
+    <textarea id="piiData"></textarea>
+  </div>
+  <button id="savePII">Save Personal Info</button>
+  <button id="autofill">Autofill Current Form</button>
+  <script src="popup.js"></script>
+</body>
+</html>
