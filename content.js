@@ -103,7 +103,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             piiKeys: piiKeys,
           },
           function (response) {
-            await debugLog("INFO", "Received response from background:", response);
+            debugLog("INFO", "Received response from background:", response);
             if (response && response.mappings) {
               chrome.storage.local.get(["piiData"], function (result) {
                 console.log("Got PII data for filling form");

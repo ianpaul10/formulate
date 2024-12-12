@@ -6,12 +6,12 @@
  * @returns {Promise<void>}
  */
 async function debugLog(type, message, data = null) {
-  const result = await chrome.storage.local.get(['debugMode']);
+  const result = await chrome.storage.local.get(["debugMode"]);
   if (result.debugMode) {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] ${type}:`, message);
     if (data) {
-      console.log('Data:', data);
+      console.log("Data:", data);
     }
   }
 }
