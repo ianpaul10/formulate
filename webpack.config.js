@@ -11,7 +11,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "[name].js",
+    filename: "src/[name].js",
     clean: true,
   },
   module: {
@@ -33,7 +33,11 @@ module.exports = {
       patterns: [
         { from: "manifest.json", to: "manifest.json" },
         { from: "public", to: "public" },
-        { from: "src/types.js", to: "types.js" },
+        { from: "src/types.js", to: "src/types.js" },
+        {
+          from: "node_modules/webextension-polyfill/dist/browser-polyfill.min.js",
+          to: "browser-polyfill.min.js",
+        },
       ],
     }),
   ],
