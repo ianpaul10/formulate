@@ -140,6 +140,7 @@ function fillForm(mappings, piiData) {
 
     if (element && piiData[mapping.piiKey]) {
       console.log("Found PII data for element:", piiData[mapping.piiKey]);
+      // @ts-ignore
       element.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
