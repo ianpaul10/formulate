@@ -1,6 +1,4 @@
-// const LLM_API_ENDPOINT = "YOUR_LLM_API_ENDPOINT";
 const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-const API_KEY = "YOUR_API_KEY";
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "processFormStructure") {
@@ -21,11 +19,17 @@ async function processWithLLM(formStructure, piiKeys) {
   `;
 
   try {
+    // Get API key from storage
+    const result = await chrome.storage.local.get(['apiKey']);
+    if (!result.apiKey) {
+      throw new Error('API key not found. Please set your OpenAI API key in the extension popup.');
+    }
+
     const response = await fetch(LLM_API_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${result.apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o",
