@@ -75,6 +75,35 @@
     input[type="checkbox"] {
       margin-right: 8px;
     }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--text-color);
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .button-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
@@ -93,8 +122,18 @@
       Enable Debug Logging
     </label>
   </div>
-  <button id="savePII">Save Personal Info</button>
-  <button id="autofill">Autofill Current Form</button>
+  <button id="savePII">
+    <span class="button-content">
+      Save Personal Info
+      <span class="spinner"></span>
+    </span>
+  </button>
+  <button id="autofill">
+    <span class="button-content">
+      Autofill Current Form
+      <span class="spinner"></span>
+    </span>
+  </button>
   <script src="../src/popup.js"></script>
 </body>
 </html>
