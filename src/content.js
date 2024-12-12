@@ -6,7 +6,7 @@ function extractFormStructure() {
   const formElements = document.querySelectorAll("input, select, textarea");
   const formStructure = [];
 
-  formElements.forEach((element) => {
+  for (const element of formElements) {
     // Cast element to HTMLInputElement or similar
     const inputElement =
       /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
@@ -87,7 +87,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (result.debugMode) {
       console.log("Content script received message:", request);
     }
-  });
+  }
 
   if (request.action === "triggerAutofill") {
     chrome.storage.local.get(["debugMode"], function (result) {
@@ -192,5 +192,5 @@ async function fillForm(mappings, piiData) {
         }
       });
     }
-  });
+  }
 }
