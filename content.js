@@ -1,4 +1,13 @@
-import { debugLog } from './utils.js';
+// Load utils module dynamically
+const utilsURL = chrome.runtime.getURL('utils.js');
+let debugLog;
+
+// Import the module
+import(utilsURL).then(module => {
+  debugLog = module.debugLog;
+}).catch(err => {
+  console.error('Failed to load utils module:', err);
+});
 
 /**
  * Extracts the structure of form elements from the current page
@@ -128,8 +137,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * @param {Object.<string, string>} piiData - PII data object with key-value pairs
  */
 function fillForm(mappings, piiData) {
-  mappings.forEach((mapping) => {
-    await debugLog("INFO", "Filling form element: ", mapping);
+  mappings.forEach(async (mapping) => {
+    if (debugLog) {
+      await debugLog("INFO", "Filling form element: ", mapping);
+    }
 
     const element = document.evaluate(
       mapping.xpath,
@@ -138,17 +149,23 @@ function fillForm(mappings, piiData) {
       XPathResult.FIRST_ORDERED_NODE_TYPE,
       null
     ).singleNodeValue;
-    await debugLog("INFO", "Found element:", element);
+    if (debugLog) {
+      await debugLog("INFO", "Found element:", element);
+    }
 
     if (element && piiData[mapping.piiKey]) {
-      await debugLog("INFO", "Found PII data for element:", piiData[mapping.piiKey]);
+      if (debugLog) {
+        await debugLog("INFO", "Found PII data for element:", piiData[mapping.piiKey]);
+      }
       // @ts-ignore
       element.value = piiData[mapping.piiKey];
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
       element.dispatchEvent(new Event("input", { bubbles: true }));
     } else {
-      await debugLog("INFO", "No PII data found for element:", mapping.piiKey);
+      if (debugLog) {
+        await debugLog("INFO", "No PII data found for element:", mapping.piiKey);
+      }
     }
   });
 }
