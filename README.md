@@ -44,3 +44,4 @@ popup.js (Gets success/error response)
 - [ ] Add support for other LLM providers (groq, claude, etc.)
 - [ ] Work with Firefox
 - [ ] Work with Safari
+- [x] Add cool (silly?) logo... The GirYAAFF
