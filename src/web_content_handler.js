@@ -1,4 +1,9 @@
-import { debugLog, CONSTANTS, extractNestedKeys } from "./utils.js";
+import {
+  debugLog,
+  CONSTANTS,
+  extractNestedKeys,
+  getNestedValue,
+} from "./utils.js";
 import { getXPath } from "./form_input_listener.js";
 
 /**
@@ -102,9 +107,10 @@ async function fillForm(mappings, piiData) {
       XPathResult.FIRST_ORDERED_NODE_TYPE,
       null
     ).singleNodeValue;
-    debugLog("INFO", "Found element:", element);
 
     userVal = getNestedValue(mapping.piiKey, piiData);
+
+    debugLog("INFO", "Found element:", { element });
 
     if (element && userVal) {
       // Cast element to input type
