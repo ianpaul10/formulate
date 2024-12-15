@@ -1,4 +1,5 @@
 import { debugLog, CONSTANTS } from "./utils.js";
+import { getXPath } from "./form_input_listener.js";
 
 /**
  * Extracts the structure of form elements from the current page
@@ -42,46 +43,6 @@ function findLabel(element) {
   return label;
 }
 
-/**
- * Generates an XPath expression to locate an element
- * @param {Element} element - The element to generate XPath for
- * @returns {string} XPath expression
- */
-function getXPath(element) {
-  if (element.id) return `//*[@id="${element.id}"]`;
-  const parts = [];
-  while (element && element.nodeType === Node.ELEMENT_NODE) {
-    let nbOfPreviousSiblings = 0;
-    let hasNextSiblings = false;
-    let sibling = element.previousSibling;
-    while (sibling) {
-      if (
-        sibling.nodeType !== Node.DOCUMENT_TYPE_NODE &&
-        sibling.nodeName === element.nodeName
-      ) {
-        nbOfPreviousSiblings++;
-      }
-      sibling = sibling.previousSibling;
-    }
-    sibling = element.nextSibling;
-    while (sibling) {
-      if (sibling.nodeName === element.nodeName) {
-        hasNextSiblings = true;
-        break;
-      }
-      sibling = sibling.nextSibling;
-    }
-    const prefix = element.prefix ? element.prefix + ":" : "";
-    const nth =
-      nbOfPreviousSiblings || hasNextSiblings
-        ? `[${nbOfPreviousSiblings + 1}]`
-        : "";
-    parts.push(prefix + element.localName + nth);
-    // @ts-ignore
-    element = element.parentNode;
-  }
-  return "/" + parts.reverse().join("/");
-}
 
 // Listen for autofill trigger
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
