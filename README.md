@@ -42,6 +42,9 @@ popup.js (Gets success/error response)
 - [ ] CI/CD deployment to chrome store
 - [ ] Encrypt PII data & API key in local storage
 - [ ] Add support for other LLM providers (groq, claude, etc.)
+- [ ] Cross deployment script
 - [ ] Work with Firefox
 - [ ] Work with Safari
 - [x] Add cool (silly?) logo... The GirYAAFF
+- [ ] Locally cache all web form inputs. Additionally store the url and site context to allow it to be used in similar but not necessarily an identical URL (e.g. diff airlines -- same data but just slightly diff form) that will be included in the context window
+- [ ] Above can be just started with keeping things by URL, no addtl metadata
