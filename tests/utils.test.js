@@ -1,7 +1,8 @@
-import { extractNestedKeys } from "../src/utils";
+import { describe, it, expect } from 'vitest'
+import { extractNestedKeys } from "../src/utils.js"
 
 describe("extractNestedKeys", () => {
-  test("should handle flat object", () => {
+  it("should handle flat object", () => {
     // Arrange
     const input = {
       name: "John",
@@ -16,7 +17,7 @@ describe("extractNestedKeys", () => {
     expect(result).toEqual(["name", "age", "email"]);
   });
 
-  test("should handle nested object with single level", () => {
+  it("should handle nested object with single level", () => {
     // Arrange
     const input = {
       name: "John",
@@ -33,7 +34,7 @@ describe("extractNestedKeys", () => {
     expect(result).toEqual(["name", "address__street", "address__city"]);
   });
 
-  test("should handle deeply nested object", () => {
+  it("should handle deeply nested object", () => {
     // Arrange
     const input = {
       name: "John",
@@ -58,7 +59,7 @@ describe("extractNestedKeys", () => {
     ]);
   });
 
-  test("should handle empty object", () => {
+  it("should handle empty object", () => {
     // Arrange
     const input = {};
 
@@ -69,7 +70,7 @@ describe("extractNestedKeys", () => {
     expect(result).toEqual([]);
   });
 
-  test("should ignore array values", () => {
+  it("should ignore array values", () => {
     // Arrange
     const input = {
       name: "John",
