@@ -9,27 +9,27 @@ Yet another auto form filler
 The basic structure and logical flow of this extension is as follows:
 
 ```
-popup.js (User clicks "Autofill")
+widget_popup.js (User clicks "Autofill")
      ↓
      Sends "triggerAutofill" message
      ↓
-content.js (Receives message)
+web_content_handler.js (Receives message)
      ↓
      Extracts form structure
      ↓
-     Sends to background.js for processing
+     Sends to background_worker.js for processing
      ↓
-background.js (Receives form structure)
+background_worker.js (Receives form structure)
      ↓
      Calls OpenAI API
      ↓
      Returns mappings
      ↓
-content.js (Receives mappings)
+web_content_handler.js (Receives mappings)
      ↓
      Fills form fields
      ↓
-popup.js (Gets success/error response)
+widget_popup.js (Gets success/error response)
 ```
 
 ## TODO
