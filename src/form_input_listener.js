@@ -8,15 +8,18 @@ import { debugLog } from "./utils.js";
  * @returns {Promise<void>}
  */
 async function handleFormInput(event) {
-  const element = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (event.target);
-  if (!element || !['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) return;
+  const element =
+    /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
+      event.target
+    );
+  if (!element || !["INPUT", "SELECT", "TEXTAREA"].includes(element.tagName))
+    return;
 
   const url = window.location.href;
   const xpath = getXPath(element);
   const value = element.value;
 
-  // Get existing PII data
-  const storage = await chrome.storage.local.get(['piiData']);
+  const storage = await chrome.storage.local.get(["piiData"]);
   const piiData = storage.piiData || {};
 
   // Create nested structure if it doesn't exist
@@ -24,12 +27,11 @@ async function handleFormInput(event) {
     piiData[url] = {};
   }
 
-  // Store the value with xpath as key
+  // Store the value with xpath as key. Will overwrite any prev values. That might be a feature or a bug, idk yet
   piiData[url][xpath] = value;
 
-  // Save back to storage
   await chrome.storage.local.set({ piiData });
-  debugLog('INFO', 'Saved form input', { url, xpath, value });
+  debugLog("INFO", "Saved form input", { url, xpath, value });
 }
 
 /**
@@ -38,6 +40,7 @@ async function handleFormInput(event) {
  * @returns {string} XPath expression that uniquely identifies the element
  */
 function getXPath(element) {
+  // TODO: move this into the utils file maybe? Since it's getting refed int two diff files
   if (element.id) return `//*[@id="${element.id}"]`;
   const parts = [];
   while (element && element.nodeType === Node.ELEMENT_NODE) {
@@ -79,9 +82,9 @@ function getXPath(element) {
  * @returns {void}
  */
 function setupFormMonitoring() {
-  document.addEventListener('input', handleFormInput, true);
-  document.addEventListener('change', handleFormInput, true);
-  debugLog('INFO', 'Form monitoring initialized');
+  document.addEventListener("input", handleFormInput, true);
+  document.addEventListener("change", handleFormInput, true);
+  debugLog("INFO", "Form monitoring initialized");
 }
 
 // Initialize form monitoring when script loads
