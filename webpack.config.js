@@ -5,9 +5,9 @@ module.exports = {
   mode: "development",
   devtool: "source-map",
   entry: {
-    background: "./src/background_worker.js",
-    content: "./src/web_content_handler.js",
-    popup: "./src/widget_popup.js",
+    background_worker: "./src/background_worker.js",
+    web_content_handler: "./src/web_content_handler.js",
+    widget_popup: "./src/widget_popup.js",
     form_input_listener: "./src/form_input_listener.js",
     utils: "./src/utils.js",
   },

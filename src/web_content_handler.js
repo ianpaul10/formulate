@@ -43,7 +43,6 @@ function findLabel(element) {
   return label;
 }
 
-
 // Listen for autofill trigger
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   debugLog("INFO", "Content script received message", request);
@@ -57,8 +56,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         const formStructure = extractFormStructure();
         debugLog("INFO", "Extracted form structure", formStructure);
 
-        // Get PII data keys (not values)
+        // Get PII data keys (NOT values)
         const piiData = await chrome.storage.local.get(["piiData"]);
+        // TODO: rewrite this to only have the most nested values not included in the data keys, and concat all the keys together
+        // e.g. if the data is { "name": "John", "address": { "city": "New York", "state": "NY" } }
+        // then the keys would be ["name", "address__city", "address__state"]
         const piiKeys = Object.keys(piiData.piiData || {});
         debugLog("INFO", "PII keys extracted");
 
