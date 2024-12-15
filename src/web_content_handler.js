@@ -10,6 +10,52 @@ import { getXPath } from "./form_input_listener.js";
  * Extracts the structure of form elements from the current page
  * @returns {FormElement[]} Array of form elements with their properties
  */
+/**
+ * Extracts additional metadata from form elements based on their type
+ * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} element
+ * @returns {Object} Additional metadata specific to the element type
+ */
+function extractElementMetadata(element) {
+  const metadata = {};
+
+  if (element instanceof HTMLSelectElement) {
+    metadata.options = Array.from(element.options).map(option => ({
+      value: option.value,
+      text: option.text,
+      selected: option.selected
+    }));
+  } else if (element instanceof HTMLInputElement) {
+    switch (element.type) {
+      case 'date':
+        metadata.min = element.min || '';
+        metadata.max = element.max || '';
+        metadata.value = element.value || '';
+        break;
+      case 'radio':
+      case 'checkbox':
+        metadata.checked = element.checked;
+        metadata.value = element.value;
+        // Get all related radio buttons for the same name
+        if (element.type === 'radio' && element.name) {
+          const radioGroup = document.querySelectorAll(`input[type="radio"][name="${element.name}"]`);
+          metadata.radioGroup = Array.from(radioGroup).map(radio => ({
+            value: radio.value,
+            label: findLabel(radio),
+            checked: radio.checked
+          }));
+        }
+        break;
+      case 'number':
+        metadata.min = element.min || '';
+        metadata.max = element.max || '';
+        metadata.step = element.step || '';
+        break;
+    }
+  }
+
+  return metadata;
+}
+
 function extractFormStructure() {
   const formElements = document.querySelectorAll("input, select, textarea");
   const formStructure = [];
@@ -20,6 +66,9 @@ function extractFormStructure() {
       /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
         element
       );
+    
+    const metadata = extractElementMetadata(inputElement);
+    
     formStructure.push({
       type: inputElement.type || inputElement.tagName.toLowerCase(),
       id: inputElement.id,
@@ -28,6 +77,9 @@ function extractFormStructure() {
       placeholder: inputElement.placeholder || "",
       label: findLabel(inputElement),
       xpath: getXPath(element),
+      required: inputElement.required,
+      disabled: inputElement.disabled,
+      ...metadata
     });
   }
 
@@ -118,7 +170,43 @@ async function fillForm(mappings, piiData) {
         /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
           element
         );
-      inputElement.value = userVal;
+
+      if (inputElement instanceof HTMLSelectElement) {
+        // Handle select elements
+        const option = Array.from(inputElement.options).find(
+          opt => opt.value === userVal || opt.text === userVal
+        );
+        if (option) {
+          option.selected = true;
+        }
+      } else if (inputElement instanceof HTMLInputElement) {
+        switch (inputElement.type) {
+          case 'radio':
+            // Find and select the correct radio button
+            const radioGroup = document.querySelectorAll(
+              `input[type="radio"][name="${inputElement.name}"]`
+            );
+            for (const radio of radioGroup) {
+              radio.checked = radio.value === userVal;
+            }
+            break;
+          case 'checkbox':
+            inputElement.checked = userVal === 'true' || userVal === true;
+            break;
+          case 'date':
+            // Ensure date is in YYYY-MM-DD format
+            const dateVal = new Date(userVal);
+            if (!isNaN(dateVal.getTime())) {
+              inputElement.value = dateVal.toISOString().split('T')[0];
+            }
+            break;
+          default:
+            inputElement.value = userVal;
+        }
+      } else {
+        inputElement.value = userVal;
+      }
+
       // Trigger change event
       element.dispatchEvent(new Event("change", { bubbles: true }));
       element.dispatchEvent(new Event("input", { bubbles: true }));
