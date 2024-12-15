@@ -5,9 +5,10 @@ module.exports = {
   mode: "development",
   devtool: "source-map",
   entry: {
-    background: "./src/background.js",
-    content: "./src/content.js",
-    popup: "./src/popup.js",
+    background: "./src/background_worker.js",
+    content: "./src/web_content_handler.js",
+    popup: "./src/widget_popup.js",
+    form_input_listener: "./src/form_input_listener.js",
     utils: "./src/utils.js",
   },
   output: {

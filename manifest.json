@@ -20,12 +20,16 @@
     }
   },
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background_worker.js"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/types.js", "src/content.js", "src/form_input_listener.js"]
+      "js": [
+        "src/types.js",
+        "src/web_content_handler.js",
+        "src/form_input_listener.js"
+      ]
     }
   ]
 }
