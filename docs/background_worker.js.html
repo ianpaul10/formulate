@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: background_worker.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: background_worker.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { debugLog, CONSTANTS } from "./utils.js";
+
+const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
+
+const inputFormDataStructure = {
+  type: "json_schema",
+  json_schema: {
+    name: "form_data_with_pii",
+    schema: {
+      type: "object",
+      properties: {
+        form_data: {
+          type: "array",
+          description:
+            "A list of form data objects, each representing a form item.",
+          items: {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                description:
+                  "The type of the form item, e.g., text, email, password.",
+              },
+              id: {
+                type: "string",
+                description: "The unique identifier of the form item.",
+              },
+              name: {
+                type: "string",
+                description: "The name attribute of the form item.",
+              },
+              placeholder: {
+                type: "string",
+                description: "Placeholder text for the form item.",
+              },
+              label: {
+                type: "string",
+                description: "Label for the form item, displayed to the user.",
+              },
+              xpath: {
+                type: "string",
+                description:
+                  "The XPath expression to locate the form item in an HTML document.",
+              },
+            },
+            required: ["type", "id", "name", "placeholder", "label", "xpath"],
+            additionalProperties: false,
+          },
+        },
+        pii_keys: {
+          type: "array",
+          description: "A list of keys representing PII items.",
+          items: {
+            type: "string",
+            description:
+              "A PII key such as date_of_birth, email, username, etc.",
+          },
+        },
+        mappings: {
+          type: "array",
+          description:
+            "A list of mappings between XPath of form items and PII items.",
+          items: {
+            type: "object",
+            properties: {
+              xpath: {
+                type: "string",
+                description: "The XPath of the form item.",
+              },
+              pii_key: {
+                type: "string",
+                description: "The corresponding PII key, if applicable.",
+              },
+            },
+            required: ["xpath", "pii_key"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["form_data", "pii_keys", "mappings"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+};
+
+const outputFormDataStructure = {
+  type: "json_schema",
+  json_schema: {
+    name: "form_data_with_pii",
+    schema: {
+      type: "object",
+      properties: {
+        mappings: {
+          type: "array",
+          description:
+            "A list of mappings between XPath of form items and PII items.",
+          items: {
+            type: "object",
+            properties: {
+              xpath: {
+                type: "string",
+                description: "The XPath of the form item.",
+              },
+              piiKey: {
+                type: "string",
+                description:
+                  "The corresponding PII key, if applicable. If you aren't able to correctly identify an appropriate PII key, you can leave this field as an empty string.",
+              },
+            },
+            required: ["xpath", "piiKey"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["mappings"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+};
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  debugLog("INFO", "Background script received message", request);
+
+  if (request.action === "processFormStructure") {
+    debugLog("INFO", "Processing form structure request", {
+      tabId: sender.tab?.id,
+      url: sender.tab?.url,
+      formStructure: request.formStructure,
+      piiKeys: request.piiKeys,
+    });
+
+    if (!request.formStructure || !request.piiKeys) {
+      debugLog("ERROR", "Missing required data in request");
+      sendResponse({ error: "Missing required data" });
+      return true;
+    }
+
+    processWithLLM(request.formStructure, request.piiKeys)
+      .then((mappings) => {
+        debugLog("INFO", "Successfully processed form structure", mappings);
+        sendResponse(mappings);
+      })
+      .catch((error) => {
+        debugLog("ERROR", "Failed to process form structure", error);
+        sendResponse({ error: error.message });
+      });
+    return true; // Will respond asynchronously
+  } else {
+    debugLog("WARNING", "Unknown action received", request.action);
+  }
+});
+
+/**
+ * Process form structure with LLM to get field mappings
+ * @param {FormElement[]} formStructure - Array of form elements
+ * @param {string[]} piiKeys - Array of available PII keys
+ * @returns {Promise&lt;LLMResponse>} Promise resolving to mapping response
+ */
+async function processWithLLM(formStructure, piiKeys) {
+  debugLog("INFO", "Starting LLM processing");
+  debugLog("DEBUG", "Form structure received", formStructure);
+  debugLog("DEBUG", "PII keys received", piiKeys);
+
+  const prompt = `
+    Given an input form data object (specified in inputFormDataStructure) and available personal identification information (PII) keys (specified in piiKeys), determine the best mapping.
+    Return a JSON array of mappings with xpath and piiKey for each field. If you are unsure if any of the piiKeys map to any of the xpath's, exclude it from the output.
+    The given input data is in the next message.
+    DO NOT HALUCINATE.
+  `;
+
+  try {
+    // Get API key from storage
+    const result = await chrome.storage.local.get(["apiKey"]);
+    if (!result.apiKey) {
+      debugLog("ERROR", "API key not found");
+      throw new Error(
+        "API key not found. Please set your OpenAI API key in the extension popup."
+      );
+    }
+    debugLog("INFO", "API key retrieved successfully");
+
+    const requestBody = {
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            inputFormDataStructure: inputFormDataStructure,
+            formStructure: formStructure,
+            piiKeys: piiKeys,
+          }),
+        },
+      ],
+      response_format: outputFormDataStructure,
+    };
+
+    debugLog("DEBUG", "Sending request to OpenAI API", {
+      endpoint: LLM_API_ENDPOINT,
+      body: requestBody,
+    });
+
+    const response = await fetch(LLM_API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${result.apiKey}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const data = await response.json();
+    debugLog("DEBUG", "Received response from OpenAI API", data);
+
+    if (!response.ok) {
+      debugLog("ERROR", "API request failed", {
+        status: response.status,
+        statusText: response.statusText,
+        data: data,
+      });
+      throw new Error(
+        `API request failed: ${data.error?.message || "Unknown error"}`
+      );
+    }
+
+    // Parse and validate LLM response
+    const mappings = JSON.parse(data.choices[0].message.content);
+    debugLog("INFO", "Successfully parsed LLM response", mappings);
+    return mappings;
+  } catch (error) {
+    debugLog("ERROR", "LLM processing error", {
+      message: error.message,
+      stack: error.stack,
+    });
+    throw error;
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#extractFormStructure">extractFormStructure</a></li><li><a href="global.html#extractNestedKeys">extractNestedKeys</a></li><li><a href="global.html#fillForm">fillForm</a></li><li><a href="global.html#findLabel">findLabel</a></li><li><a href="global.html#getNestedValue">getNestedValue</a></li><li><a href="global.html#getXPath">getXPath</a></li><li><a href="global.html#handleFormInput">handleFormInput</a></li><li><a href="global.html#processWithLLM">processWithLLM</a></li><li><a href="global.html#setupFormMonitoring">setupFormMonitoring</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun Dec 15 2024 23:04:28 GMT+0700 (Indochina Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
