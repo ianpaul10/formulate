@@ -85,3 +85,86 @@ describe("extractNestedKeys", () => {
     expect(result).toEqual(["name", "hobbies", "addresses"]);
   });
 });
+
+describe("getNestedValue", () => {
+  it("should get value from flat object", () => {
+    // Arrange
+    const input = {
+      name: "John",
+      age: 30,
+      email: "john@example.com",
+    };
+
+    // Act
+    const result = getNestedValue("name", input);
+
+    // Assert
+    expect(result).toBe("John");
+  });
+
+  it("should get value from nested object", () => {
+    // Arrange
+    const input = {
+      name: "John",
+      address: {
+        street: "123 Main St",
+        city: "Boston",
+      },
+    };
+
+    // Act
+    const result = getNestedValue("address__city", input);
+
+    // Assert
+    expect(result).toBe("Boston");
+  });
+
+  it("should get value from deeply nested object", () => {
+    // Arrange
+    const input = {
+      name: "John",
+      contact: {
+        email: "john@example.com",
+        phone: {
+          home: "555-1234",
+          work: "555-5678",
+        },
+      },
+    };
+
+    // Act
+    const result = getNestedValue("contact__phone__home", input);
+
+    // Assert
+    expect(result).toBe("555-1234");
+  });
+
+  it("should return undefined for non-existent path", () => {
+    // Arrange
+    const input = {
+      name: "John",
+      address: {
+        street: "123 Main St",
+      },
+    };
+
+    // Act
+    const result = getNestedValue("address__city", input);
+
+    // Assert
+    expect(result).toBeUndefined();
+  });
+
+  it("should return undefined for non-existent nested path", () => {
+    // Arrange
+    const input = {
+      name: "John",
+    };
+
+    // Act
+    const result = getNestedValue("contact__phone__home", input);
+
+    // Assert
+    expect(result).toBeUndefined();
+  });
+});

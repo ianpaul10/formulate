@@ -11,6 +11,22 @@
  *   contact: { email: 'john@email.com', phone: { home: '555-1234' } }
  * })
  */
+/**
+ * Gets a value from a nested object using a key path string with double underscores
+ * @param {string} keyPath - The key path (e.g. "contact__phone__home")
+ * @param {Object} obj - The object to extract the value from
+ * @returns {any} The value at the key path, or undefined if not found
+ * @example
+ * // Returns "555-1234"
+ * getNestedValue("contact__phone__home", {
+ *   contact: { phone: { home: "555-1234" } }
+ * })
+ */
+export function getNestedValue(keyPath, obj) {
+    const keys = keyPath.split('__');
+    return keys.reduce((value, key) => value?.[key], obj);
+}
+
 export function extractNestedKeys(obj, prefix = '') {
     return Object.entries(obj).reduce((keys, [key, value]) => {
         const newKey = prefix ? `${prefix}__${key}` : key;
