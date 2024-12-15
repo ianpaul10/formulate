@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { extractNestedKeys } from "../src/utils.js"
+import { describe, it, expect } from "vitest";
+import { extractNestedKeys } from "../src/utils.js";
 
 describe("extractNestedKeys", () => {
   it("should handle flat object", () => {
