@@ -108,7 +108,7 @@ async function fillForm(mappings, piiData) {
       null
     ).singleNodeValue;
 
-    userVal = getNestedValue(mapping.piiKey, piiData);
+    const userVal = getNestedValue(mapping.piiKey, piiData);
 
     debugLog("INFO", "Found element:", { element });
 
