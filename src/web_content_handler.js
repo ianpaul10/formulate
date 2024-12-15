@@ -1,4 +1,4 @@
-import { debugLog, CONSTANTS } from "./utils.js";
+import { debugLog, CONSTANTS, extractNestedKeys } from "./utils.js";
 import { getXPath } from "./form_input_listener.js";
 
 /**
@@ -58,10 +58,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
         // Get PII data keys (NOT values)
         const piiData = await chrome.storage.local.get(["piiData"]);
-        // TODO: rewrite this to only have the most nested values not included in the data keys, and concat all the keys together
-        // e.g. if the data is { "name": "John", "address": { "city": "New York", "state": "NY" } }
-        // then the keys would be ["name", "address__city", "address__state"]
-        const piiKeys = Object.keys(piiData.piiData || {});
+        const piiKeys = extractNestedKeys(piiData.piiData || {});
         debugLog("INFO", "PII keys extracted");
 
         // Send to background script for LLM processing
