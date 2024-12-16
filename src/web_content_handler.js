@@ -75,14 +75,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           await fillForm(response.mappings, piiData.piiData);
           await chrome.runtime.sendMessage({
             action: "autofillComplete",
-            success: true
+            success: true,
           });
         } else {
           debugLog("WARN", "No mappings in response:", response);
           await chrome.runtime.sendMessage({
             action: "autofillComplete",
             success: false,
-            error: "No mappings received"
+            error: "No mappings received",
           });
         }
       } catch (error) {
@@ -91,7 +91,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           await chrome.runtime.sendMessage({
             action: "autofillComplete",
             success: false,
-            error: error.message || "Failed to complete autofill"
+            error: error.message || "Failed to complete autofill",
           });
         } catch (sendError) {
           debugLog("ERROR", "Failed to send error message:", sendError);
@@ -123,7 +123,7 @@ async function fillForm(mappings, piiData) {
 
     debugLog("INFO", "Found element:", { element });
 
-    if (element && userVal) {
+    if (element && userVal && userVal !== "") {
       const inputElement =
         /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
           element
