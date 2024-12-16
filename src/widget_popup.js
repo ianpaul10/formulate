@@ -76,9 +76,12 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", async function () {
       setButtonLoading("autofill", true);
       try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tabs = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
         const activeTab = tabs[0];
-        
+
         if (!activeTab?.id) {
           throw new Error("No active tab found");
         }
@@ -88,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (message.action === "autofillComplete") {
             setButtonLoading("autofill", false);
             chrome.runtime.onMessage.removeListener(handleAutofillComplete);
-            
+
             if (!message.success) {
               console.error("Autofill failed:", message.error);
               alert("Autofill failed: " + (message.error || "Unknown error"));
@@ -105,14 +108,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         // Trigger autofill
-        await chrome.tabs.sendMessage(activeTab.id, { action: "triggerAutofill" });
+        await chrome.tabs.sendMessage(activeTab.id, {
+          action: "triggerAutofill",
+        });
 
         // Set a timeout to remove the listener and reset button state if no response
         setTimeout(() => {
           chrome.runtime.onMessage.removeListener(handleAutofillComplete);
           setButtonLoading("autofill", false);
         }, 10000); // 10 second timeout
-
       } catch (error) {
         console.error("Error:", error);
         alert("An error occurred. Please check the console for details.");
