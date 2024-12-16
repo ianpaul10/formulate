@@ -1,4 +1,4 @@
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+export const browserAPI = typeof browser !== "undefined" ? browser : chrome;
 
 /**
  * Gets a value from a nested object using a key path string with double underscores
