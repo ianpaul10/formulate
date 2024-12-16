@@ -1,7 +1,7 @@
-import { debugLog } from "./utils.js";
+import { debugLog, browserAPI } from "./utils.js";
 
 /**
- * Safely executes chrome storage operations with error handling
+ * Safely executes browserAPI storage operations with error handling
  * @param {Function} storageOperation - The storage operation to perform
  * @returns {Promise<any>}
  */
@@ -9,7 +9,7 @@ async function safeStorageOperation(storageOperation) {
   try {
     return await storageOperation();
   } catch (error) {
-    if (error.message.includes('Extension context invalidated')) {
+    if (error.message.includes("Extension context invalidated")) {
       debugLog("INFO", "Extension context invalidated - page needs refresh");
       return null;
     }
@@ -18,20 +18,26 @@ async function safeStorageOperation(storageOperation) {
 }
 
 /**
- * Monitors and saves form input values to chrome storage
+ * Monitors and saves form input values to browserAPI storage
  * @param {Event} event - Input or change event from form element
  * @returns {Promise<void>}
  */
 async function handleFormInput(event) {
-  const element = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (event.target);
-  if (!element || !["INPUT", "SELECT", "TEXTAREA"].includes(element.tagName)) return;
+  const element =
+    /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
+      event.target
+    );
+  if (!element || !["INPUT", "SELECT", "TEXTAREA"].includes(element.tagName))
+    return;
 
   const url = window.location.href;
   const xpath = getXPath(element);
   const value = element.value;
 
   try {
-    const storage = await safeStorageOperation(() => chrome.storage.local.get(["piiData"]));
+    const storage = await safeStorageOperation(() =>
+      browserAPI.storage.local.get(["piiData"])
+    );
     if (storage === null) return; // Extension context was invalidated
 
     const piiData = storage.piiData || {};
@@ -41,7 +47,7 @@ async function handleFormInput(event) {
 
     piiData[url][xpath] = value;
 
-    await safeStorageOperation(() => chrome.storage.local.set({ piiData }));
+    await safeStorageOperation(() => browserAPI.storage.local.set({ piiData }));
     debugLog("INFO", "Saved form input", { url, xpath, value });
   } catch (error) {
     debugLog("ERROR", "Error saving form input:", error);

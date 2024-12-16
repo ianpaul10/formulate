@@ -1,6 +1,7 @@
+import { browserAPI } from "./utils.js";
 document.addEventListener("DOMContentLoaded", function () {
   // Load saved PII data, API key, and debug state
-  chrome.storage.local.get(
+  browserAPI.storage.local.get(
     ["piiData", "apiKey", "debugMode"],
     function (result) {
       if (result.piiData) {
@@ -44,15 +45,15 @@ document.addEventListener("DOMContentLoaded", function () {
         setButtonLoading("savePII", true);
         try {
           await new Promise((resolve, reject) => {
-            chrome.storage.local.set(
+            browserAPI.storage.local.set(
               {
                 piiData: piiData,
                 apiKey: apiKey,
                 debugMode: debugMode,
               },
               () => {
-                if (chrome.runtime.lastError) {
-                  reject(chrome.runtime.lastError);
+                if (browserAPI.runtime.lastError) {
+                  reject(browserAPI.runtime.lastError);
                 } else {
                   resolve();
                 }
@@ -76,9 +77,12 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", async function () {
       setButtonLoading("autofill", true);
       try {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tabs = await browserAPI.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
         const activeTab = tabs[0];
-        
+
         if (!activeTab?.id) {
           throw new Error("No active tab found");
         }
@@ -87,8 +91,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const handleAutofillComplete = (message) => {
           if (message.action === "autofillComplete") {
             setButtonLoading("autofill", false);
-            chrome.runtime.onMessage.removeListener(handleAutofillComplete);
-            
+            browserAPI.runtime.onMessage.removeListener(handleAutofillComplete);
+
             if (!message.success) {
               console.error("Autofill failed:", message.error);
               alert("Autofill failed: " + (message.error || "Unknown error"));
@@ -96,23 +100,24 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         };
 
-        chrome.runtime.onMessage.addListener(handleAutofillComplete);
+        browserAPI.runtime.onMessage.addListener(handleAutofillComplete);
 
         // Inject and execute content script
-        await chrome.scripting.executeScript({
+        await browserAPI.scripting.executeScript({
           target: { tabId: activeTab.id },
           files: ["src/web_content_handler.js"],
         });
 
         // Trigger autofill
-        await chrome.tabs.sendMessage(activeTab.id, { action: "triggerAutofill" });
+        await browserAPI.tabs.sendMessage(activeTab.id, {
+          action: "triggerAutofill",
+        });
 
         // Set a timeout to remove the listener and reset button state if no response
         setTimeout(() => {
-          chrome.runtime.onMessage.removeListener(handleAutofillComplete);
+          browserAPI.runtime.onMessage.removeListener(handleAutofillComplete);
           setButtonLoading("autofill", false);
         }, 10000); // 10 second timeout
-
       } catch (error) {
         console.error("Error:", error);
         alert("An error occurred. Please check the console for details.");

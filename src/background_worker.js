@@ -1,4 +1,4 @@
-import { debugLog, CONSTANTS } from "./utils.js";
+import { debugLog, CONSTANTS, browserAPI } from "./utils.js";
 
 const LLM_API_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
@@ -120,7 +120,11 @@ const outputFormDataStructure = {
   },
 };
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+browserAPI.runtime.onMessage.addListener(function (
+  request,
+  sender,
+  sendResponse
+) {
   debugLog("INFO", "Background script received message", request);
 
   if (request.action === "processFormStructure") {
@@ -175,7 +179,7 @@ async function processWithLLM(formStructure, piiKeys, url) {
 
   try {
     // Get API key from storage
-    const result = await chrome.storage.local.get(["apiKey"]);
+    const result = await browserAPI.storage.local.get(["apiKey"]);
     if (!result.apiKey) {
       debugLog("ERROR", "API key not found");
       throw new Error(

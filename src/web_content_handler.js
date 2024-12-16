@@ -3,6 +3,7 @@ import {
   CONSTANTS,
   extractNestedKeys,
   getNestedValue,
+  browserAPI,
 } from "./utils.js";
 
 import { getXPath } from "./form_input_listener.js";
@@ -48,7 +49,11 @@ function findLabel(element) {
   return label;
 }
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+browserAPI.runtime.onMessage.addListener(function (
+  request,
+  sender,
+  sendResponse
+) {
   debugLog("INFO", "Content script received message", request);
 
   if (request.action === "triggerAutofill") {
@@ -59,11 +64,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         const formStructure = extractFormStructure();
         debugLog("INFO", "Extracted form structure", formStructure);
 
-        const piiData = await chrome.storage.local.get(["piiData"]);
+        const piiData = await browserAPI.storage.local.get(["piiData"]);
         const piiKeys = extractNestedKeys(piiData.piiData || {});
         debugLog("INFO", "PII keys extracted");
 
-        const response = await chrome.runtime.sendMessage({
+        const response = await browserAPI.runtime.sendMessage({
           action: "processFormStructure",
           formStructure: formStructure,
           piiKeys: piiKeys,
@@ -73,13 +78,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
         if (response && response.mappings) {
           await fillForm(response.mappings, piiData.piiData);
-          await chrome.runtime.sendMessage({
+          await browserAPI.runtime.sendMessage({
             action: "autofillComplete",
             success: true,
           });
         } else {
           debugLog("WARN", "No mappings in response:", response);
-          await chrome.runtime.sendMessage({
+          await browserAPI.runtime.sendMessage({
             action: "autofillComplete",
             success: false,
             error: "No mappings received",
@@ -88,7 +93,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       } catch (error) {
         debugLog("ERROR", "Critical error in autofill process:", error);
         try {
-          await chrome.runtime.sendMessage({
+          await browserAPI.runtime.sendMessage({
             action: "autofillComplete",
             success: false,
             error: error.message || "Failed to complete autofill",

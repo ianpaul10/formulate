@@ -4,9 +4,6 @@
 // @ts-ignore
 const browser = globalThis.browser;
 
-/**
- * @type {import("webextension-polyfill").Browser}
- */
 export const browserAPI = typeof browser !== "undefined" ? browser : chrome;
 
 /**
