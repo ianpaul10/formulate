@@ -5,28 +5,6 @@ import {
   getNestedValue,
 } from "./utils.js";
 
-/**
- * Safely sends a response and handles any messaging-related exceptions
- * @param {Function} sendResponse - Chrome's sendResponse function
- * @param {Object} response - The response object to send
- * @param {string} operationName - Name of the operation for logging
- */
-function safeSendResponse(sendResponse, response, operationName) {
-  try {
-    sendResponse(response);
-  } catch (error) {
-    if (error instanceof DOMException) {
-      // Only log these at DEBUG level since they're expected and non-critical
-      debugLog(
-        "DEBUG",
-        `Message port closed while sending response for ${operationName} - This is expected behavior`
-      );
-    } else {
-      // Log unexpected errors at ERROR level
-      debugLog("ERROR", `Unexpected error sending response for ${operationName}:`, error);
-    }
-  }
-}
 import { getXPath } from "./form_input_listener.js";
 
 /**
@@ -76,7 +54,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "triggerAutofill") {
     debugLog("INFO", "Triggering autofill process");
 
-    Promise.resolve().then(async () => {
+    (async () => {
       try {
         const formStructure = extractFormStructure();
         debugLog("INFO", "Extracted form structure", formStructure);
@@ -95,33 +73,33 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
         if (response && response.mappings) {
           await fillForm(response.mappings, piiData.piiData);
-          safeSendResponse(
-            sendResponse, 
-            { success: true },
-            "autofill completion"
-          );
+          await chrome.runtime.sendMessage({
+            action: "autofillComplete",
+            success: true
+          });
         } else {
           debugLog("WARN", "No mappings in response:", response);
-          safeSendResponse(
-            sendResponse,
-            { error: "No mappings received" },
-            "autofill error"
-          );
+          await chrome.runtime.sendMessage({
+            action: "autofillComplete",
+            success: false,
+            error: "No mappings received"
+          });
         }
       } catch (error) {
-        // Only log actual errors that might affect functionality
-        if (!(error instanceof DOMException)) {
-          debugLog("ERROR", "Critical error in autofill process:", error);
-          safeSendResponse(
-            sendResponse,
-            { error: "Failed to complete autofill" },
-            "autofill critical error"
-          );
+        debugLog("ERROR", "Critical error in autofill process:", error);
+        try {
+          await chrome.runtime.sendMessage({
+            action: "autofillComplete",
+            success: false,
+            error: error.message || "Failed to complete autofill"
+          });
+        } catch (sendError) {
+          debugLog("ERROR", "Failed to send error message:", sendError);
         }
       }
-    });
-  }
-  return true; // Important: indicates we will send a response asynchronously
+    })();
+
+    return false; // We're not using sendResponse
 });
 
 /**
