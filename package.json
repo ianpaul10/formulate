@@ -4,7 +4,11 @@
   "main": "background.js",
   "scripts": {
     "build": "webpack --mode=production",
-    "dev": "webpack --watch --mode=development", 
+    "build:chrome": "webpack --mode=production --env browser=chrome",
+    "build:firefox": "webpack --mode=production --env browser=firefox",
+    "build:all": "npm run build:chrome && npm run build:firefox",
+    "dev": "webpack --watch --mode=development --env browser=chrome",
+    "dev:firefox": "webpack --watch --mode=development --env browser=firefox",
     "clean": "rm -rf dist/",
     "test": "vitest run",
     "test:watch": "vitest",

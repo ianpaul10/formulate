@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "name": "YAAFF - Yet Another Auto Form Filler",
+  "version": "0.1.0",
+  "description": "Securely autofill forms using locally stored data and LLM assistance",
+  "icons": {
+    "16": "public/icons/yaaff16.png",
+    "32": "public/icons/yaaff32.png",
+    "48": "public/icons/yaaff48.png",
+    "128": "public/icons/yaaff128.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "<all_urls>"
+  ],
+  "browser_action": {
+    "default_popup": "public/popup.html",
+    "default_icons": {
+      "16": "public/icons/yaaff16.png",
+      "32": "public/icons/yaaff32.png",
+      "48": "public/icons/yaaff48.png",
+      "128": "public/icons/yaaff128.png"
+    }
+  },
+  "background": {
+    "scripts": ["browser-polyfill.min.js", "src/background_worker.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "browser-polyfill.min.js",
+        "src/types.js",
+        "src/web_content_handler.js",
+        "src/form_input_listener.js"
+      ]
+    }
+  ]
+}
