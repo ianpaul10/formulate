@@ -124,10 +124,16 @@ async function fillForm(mappings, piiData) {
     debugLog("INFO", "Found element:", { element });
 
     if (element && userVal && userVal !== "") {
-      const inputElement = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (element);
-      
+      const inputElement =
+        /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
+          element
+        );
+
       // Skip file input fields
-      if (inputElement instanceof HTMLInputElement && inputElement.type === 'file') {
+      if (
+        inputElement instanceof HTMLInputElement &&
+        inputElement.type === "file"
+      ) {
         debugLog("INFO", "Skipping file input field:", mapping.xpath);
         continue;
       }
@@ -138,7 +144,11 @@ async function fillForm(mappings, piiData) {
         element.dispatchEvent(new Event("change", { bubbles: true }));
         element.dispatchEvent(new Event("input", { bubbles: true }));
       } catch (error) {
-        debugLog("WARN", `Failed to set value for element: ${mapping.xpath}`, error);
+        debugLog(
+          "WARN",
+          `Failed to set value for element: ${mapping.xpath}`,
+          error
+        );
         continue; // Skip this element and continue with others
       }
     } else {
