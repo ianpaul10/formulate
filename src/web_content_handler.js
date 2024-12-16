@@ -15,7 +15,6 @@ function extractFormStructure() {
   const formStructure = [];
 
   for (const element of formElements) {
-    // Cast element to HTMLInputElement or similar
     const inputElement =
       /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
         element
@@ -43,12 +42,11 @@ function findLabel(element) {
   let label = "";
   if (element.id) {
     const labelElement = document.querySelector(`label[for="${element.id}"]`);
-    if (labelElement) label = labelElement.textContent.trim();
+    if (labelElement) label = labelElement.textContent?.trim() || "";
   }
   return label;
 }
 
-// Listen for autofill trigger
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   debugLog("INFO", "Content script received message", request);
 
@@ -113,7 +111,6 @@ async function fillForm(mappings, piiData) {
     debugLog("INFO", "Found element:", { element });
 
     if (element && userVal) {
-      // Cast element to input type
       const inputElement =
         /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
           element

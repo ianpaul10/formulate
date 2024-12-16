@@ -46,6 +46,12 @@ export async function isDebugEnabled() {
   return result.debugMode || false;
 }
 
+/**
+ * Logs a message to the console with a timestamp and type
+ * @param {string} type - The type of message (INFO, WARN, ERROR)
+ * @param {string} message - The message to log
+ * @param {any} data - Optional data to log
+ * */
 export async function debugLog(type, message, data = null) {
   if (await isDebugEnabled()) {
     const timestamp = new Date().toISOString();
