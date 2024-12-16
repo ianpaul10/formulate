@@ -50,3 +50,4 @@ widget_popup.js (Gets success/error response)
 - [ ] Above can be just started with keeping things by URL, no addtl metadata
 - [ ] Rename piiData or userData?
 - [ ] Handle dropdowns/radio buttons/date inputs (I think just all structured inputs). Right now we don't read those elements or write them back to the page at all.
+- [ ] Pass url of the current page and other metadata to LLM for better context
