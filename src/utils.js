@@ -1,5 +1,6 @@
-// @ts-ignore
-declare const browser: typeof chrome;
+/**
+ * @type {typeof chrome} browser
+ */
 export const browserAPI = typeof browser !== "undefined" ? browser : chrome;
 
 /**
