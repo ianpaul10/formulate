@@ -12,6 +12,7 @@
   "permissions": [
     "storage",
     "activeTab",
+    "tabs",
     "<all_urls>"
   ],
   "browser_action": {
@@ -32,6 +33,7 @@
       "js": [
         "browser-polyfill.min.js",
         "src/types.js",
+        "src/utils.js",
         "src/web_content_handler.js",
         "src/form_input_listener.js"
       ]

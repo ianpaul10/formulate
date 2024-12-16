@@ -54,9 +54,13 @@ function generateConfig(browser) {
   };
 }
 
-// Export configurations for both browsers
-module.exports = [
-  generateConfig("chrome"),
-  // Uncomment when ready to add Firefox support
-  // generateConfig("firefox"),
-];
+module.exports = (env) => {
+  if (env.browser === "firefox") {
+    return generateConfig("firefox");
+  }
+  if (env.browser === "chrome") {
+    return generateConfig("chrome");
+  }
+  // Default to chrome if no browser specified
+  return generateConfig("chrome");
+};

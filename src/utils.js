@@ -1,3 +1,5 @@
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 /**
  * Gets a value from a nested object using a key path string with double underscores
  * @param {string} keyPath - The key path (e.g. "contact__phone__home")
@@ -43,7 +45,7 @@ export function extractNestedKeys(obj, prefix = "") {
 }
 
 export async function isDebugEnabled() {
-  const result = await chrome.storage.local.get(["debugMode"]);
+  const result = await browserAPI.storage.local.get(["debugMode"]);
   return result.debugMode || false;
 }
 
