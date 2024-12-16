@@ -76,44 +76,43 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", async function () {
       setButtonLoading("autofill", true);
       try {
-        const tabs = await new Promise((resolve) => {
-          chrome.tabs.query({ active: true, currentWindow: true }, resolve);
-        });
-        // First ensure the content script is injected
-        chrome.scripting
-          .executeScript({
-            target: { tabId: tabs[0].id },
-            files: ["src/web_content_handler.js"],
-          })
-          .then(() => {
-            // Then send the message
-            chrome.tabs.sendMessage(
-              tabs[0].id,
-              { action: "triggerAutofill" },
-              (response) => {
-                if (chrome.runtime.lastError) {
-                  console.error("Error:", chrome.runtime.lastError);
-                  alert(
-                    "Error: Could not connect to the page. Please refresh and try again."
-                  );
-                  setButtonLoading("autofill", false);
-                } else if (response && response.error) {
-                  console.error("Error:", response.error);
-                  alert("Error: " + response.error);
-                  setButtonLoading("autofill", false);
-                } else if (response && response.success) {
-                  setButtonLoading("autofill", false);
-                }
-              }
-            );
-          })
-          .catch((err) => {
-            console.error("Script injection failed:", err);
-            alert(
-              "Error: Could not inject content script. Please check console for details."
-            );
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const activeTab = tabs[0];
+        
+        if (!activeTab?.id) {
+          throw new Error("No active tab found");
+        }
+
+        // Setup completion listener before triggering autofill
+        const handleAutofillComplete = (message) => {
+          if (message.action === "autofillComplete") {
             setButtonLoading("autofill", false);
-          });
+            chrome.runtime.onMessage.removeListener(handleAutofillComplete);
+            
+            if (!message.success) {
+              console.error("Autofill failed:", message.error);
+              alert("Autofill failed: " + (message.error || "Unknown error"));
+            }
+          }
+        };
+
+        chrome.runtime.onMessage.addListener(handleAutofillComplete);
+
+        // Inject and execute content script
+        await chrome.scripting.executeScript({
+          target: { tabId: activeTab.id },
+          files: ["src/web_content_handler.js"],
+        });
+
+        // Trigger autofill
+        await chrome.tabs.sendMessage(activeTab.id, { action: "triggerAutofill" });
+
+        // Set a timeout to remove the listener and reset button state if no response
+        setTimeout(() => {
+          chrome.runtime.onMessage.removeListener(handleAutofillComplete);
+          setButtonLoading("autofill", false);
+        }, 10000); // 10 second timeout
+
       } catch (error) {
         console.error("Error:", error);
         alert("An error occurred. Please check the console for details.");
