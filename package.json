@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack --mode=production --env browser=chrome",
     "build:chrome": "webpack --mode=production --env browser=chrome",
-    "build:firefox": "webpack --mode=production --env browser=firefox", 
+    "build:firefox": "webpack --mode=production --env browser=firefox",
     "build:all": "npm run build:chrome && npm run build:firefox",
     "dev": "webpack --watch --mode=development --env browser=chrome",
     "dev:chrome": "webpack --watch --mode=development --env browser=chrome",
@@ -23,6 +23,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@types/chrome": "^0.0.287",
+    "@types/webextension-polyfill": "^0.12.1",
     "babel-loader": "^9.2.1",
     "copy-webpack-plugin": "^11.0.0",
     "jsdoc": "^4.0.2",

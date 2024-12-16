@@ -129,7 +129,6 @@ async function fillForm(mappings, piiData) {
           element
         );
 
-      // Skip file input fields
       if (
         inputElement instanceof HTMLInputElement &&
         inputElement.type === "file"
@@ -140,7 +139,6 @@ async function fillForm(mappings, piiData) {
 
       try {
         inputElement.value = userVal;
-        // Trigger change event
         element.dispatchEvent(new Event("change", { bubbles: true }));
         element.dispatchEvent(new Event("input", { bubbles: true }));
       } catch (error) {
