@@ -100,6 +100,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     })();
 
     return false; // We're not using sendResponse
+  }
 });
 
 /**
