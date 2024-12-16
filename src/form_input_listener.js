@@ -1,37 +1,51 @@
 import { debugLog } from "./utils.js";
 
 /**
+ * Safely executes chrome storage operations with error handling
+ * @param {Function} storageOperation - The storage operation to perform
+ * @returns {Promise<any>}
+ */
+async function safeStorageOperation(storageOperation) {
+  try {
+    return await storageOperation();
+  } catch (error) {
+    if (error.message.includes('Extension context invalidated')) {
+      debugLog("INFO", "Extension context invalidated - page needs refresh");
+      return null;
+    }
+    throw error; // Re-throw other errors
+  }
+}
+
+/**
  * Monitors and saves form input values to chrome storage
- * Stores values in a nested structure where the top level key is the URL
- * and nested keys are xpaths of the form elements
  * @param {Event} event - Input or change event from form element
  * @returns {Promise<void>}
  */
 async function handleFormInput(event) {
-  const element =
-    /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (
-      event.target
-    );
-  if (!element || !["INPUT", "SELECT", "TEXTAREA"].includes(element.tagName))
-    return;
+  const element = /** @type {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} */ (event.target);
+  if (!element || !["INPUT", "SELECT", "TEXTAREA"].includes(element.tagName)) return;
 
   const url = window.location.href;
   const xpath = getXPath(element);
   const value = element.value;
 
-  const storage = await chrome.storage.local.get(["piiData"]);
-  const piiData = storage.piiData || {};
+  try {
+    const storage = await safeStorageOperation(() => chrome.storage.local.get(["piiData"]));
+    if (storage === null) return; // Extension context was invalidated
 
-  // Create nested structure if it doesn't exist
-  if (!piiData[url]) {
-    piiData[url] = {};
+    const piiData = storage.piiData || {};
+    if (!piiData[url]) {
+      piiData[url] = {};
+    }
+
+    piiData[url][xpath] = value;
+
+    await safeStorageOperation(() => chrome.storage.local.set({ piiData }));
+    debugLog("INFO", "Saved form input", { url, xpath, value });
+  } catch (error) {
+    debugLog("ERROR", "Error saving form input:", error);
   }
-
-  // Store the value with xpath as key. Will overwrite any prev values. That might be a feature or a bug, idk yet
-  piiData[url][xpath] = value;
-
-  await chrome.storage.local.set({ piiData });
-  debugLog("INFO", "Saved form input", { url, xpath, value });
 }
 
 /**
@@ -78,13 +92,16 @@ function getXPath(element) {
 
 /**
  * Initializes form input monitoring by adding event listeners
- * to capture all form input changes on the page
  * @returns {void}
  */
 function setupFormMonitoring() {
-  document.addEventListener("input", handleFormInput, true);
-  document.addEventListener("change", handleFormInput, true);
-  debugLog("INFO", "Form monitoring initialized");
+  try {
+    document.addEventListener("input", handleFormInput, true);
+    document.addEventListener("change", handleFormInput, true);
+    debugLog("INFO", "Form monitoring initialized");
+  } catch (error) {
+    debugLog("ERROR", "Failed to setup form monitoring:", error);
+  }
 }
 
 // Initialize form monitoring when script loads
