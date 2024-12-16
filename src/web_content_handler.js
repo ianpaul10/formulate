@@ -4,6 +4,29 @@ import {
   extractNestedKeys,
   getNestedValue,
 } from "./utils.js";
+
+/**
+ * Safely sends a response and handles any messaging-related exceptions
+ * @param {Function} sendResponse - Chrome's sendResponse function
+ * @param {Object} response - The response object to send
+ * @param {string} operationName - Name of the operation for logging
+ */
+function safeSendResponse(sendResponse, response, operationName) {
+  try {
+    sendResponse(response);
+  } catch (error) {
+    if (error instanceof DOMException) {
+      // Only log these at DEBUG level since they're expected and non-critical
+      debugLog(
+        "DEBUG",
+        `Message port closed while sending response for ${operationName} - This is expected behavior`
+      );
+    } else {
+      // Log unexpected errors at ERROR level
+      debugLog("ERROR", `Unexpected error sending response for ${operationName}:`, error);
+    }
+  }
+}
 import { getXPath } from "./form_input_listener.js";
 
 /**
@@ -53,19 +76,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "triggerAutofill") {
     debugLog("INFO", "Triggering autofill process");
 
-    // Using Promise.resolve().then() to handle async operations
     Promise.resolve().then(async () => {
       try {
         const formStructure = extractFormStructure();
         debugLog("INFO", "Extracted form structure", formStructure);
 
-        // Get PII data keys (NOT values)
         const piiData = await chrome.storage.local.get(["piiData"]);
         const piiKeys = extractNestedKeys(piiData.piiData || {});
         debugLog("INFO", "PII keys extracted");
 
-        // Send to background script for LLM processing
-        debugLog("INFO", "Sending message to background script");
         const response = await chrome.runtime.sendMessage({
           action: "processFormStructure",
           formStructure: formStructure,
@@ -76,14 +95,29 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
         if (response && response.mappings) {
           await fillForm(response.mappings, piiData.piiData);
-          // Send completion message back to popup
-          sendResponse({ success: true });
+          safeSendResponse(
+            sendResponse, 
+            { success: true },
+            "autofill completion"
+          );
         } else {
-          console.error("No mappings in response:", response);
-          sendResponse({ error: "No mappings received" });
+          debugLog("WARN", "No mappings in response:", response);
+          safeSendResponse(
+            sendResponse,
+            { error: "No mappings received" },
+            "autofill error"
+          );
         }
       } catch (error) {
-        console.error("Error in autofill process:", error);
+        // Only log actual errors that might affect functionality
+        if (!(error instanceof DOMException)) {
+          debugLog("ERROR", "Critical error in autofill process:", error);
+          safeSendResponse(
+            sendResponse,
+            { error: "Failed to complete autofill" },
+            "autofill critical error"
+          );
+        }
       }
     });
   }
