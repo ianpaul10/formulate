@@ -11,6 +11,7 @@
  */
 export function getNestedValue(keyPath, obj) {
   const keys = keyPath.split("__");
+  // @ts-ignore
   return keys.reduce((value, key) => value?.[key], obj);
 }
 

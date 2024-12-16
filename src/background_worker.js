@@ -137,7 +137,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       return true;
     }
 
-    processWithLLM(request.formStructure, request.piiKeys)
+    processWithLLM(request.formStructure, request.piiKeys, sender.tab?.url)
       .then((mappings) => {
         debugLog("INFO", "Successfully processed form structure", mappings);
         sendResponse(mappings);
@@ -156,16 +156,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  * Process form structure with LLM to get field mappings
  * @param {FormElement[]} formStructure - Array of form elements
  * @param {string[]} piiKeys - Array of available PII keys
+ * @param {string} url - URL of the current page
  * @returns {Promise<LLMResponse>} Promise resolving to mapping response
  */
-async function processWithLLM(formStructure, piiKeys) {
+async function processWithLLM(formStructure, piiKeys, url) {
   debugLog("INFO", "Starting LLM processing");
   debugLog("DEBUG", "Form structure received", formStructure);
   debugLog("DEBUG", "PII keys received", piiKeys);
+  debugLog("DEBUG", "URL received", url);
 
   const prompt = `
     Given an input form data object (specified in inputFormDataStructure) and available personal identification information (PII) keys (specified in piiKeys), determine the best mapping.
     Return a JSON array of mappings with xpath and piiKey for each field. If you are unsure if any of the piiKeys map to any of the xpath's, exclude it from the output.
+    The current web page's URL is ${url}. The piiKeys are formatted as a list of strings, with some concatenated with double underscores (e.g., "website_url__email") to represent previously seen keys associated with the same xpath. If the current URL matches or is similar to the URL in the PII key list, with a similar xpath, that might be a good choice.
     The given input data is in the next message.
     DO NOT HALUCINATE.
   `;
@@ -198,6 +201,7 @@ async function processWithLLM(formStructure, piiKeys) {
             inputFormDataStructure: inputFormDataStructure,
             formStructure: formStructure,
             piiKeys: piiKeys,
+            currentFormUrl: url,
           }),
         },
       ],
